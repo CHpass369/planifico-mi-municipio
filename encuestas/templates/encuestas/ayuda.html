@@ -1,0 +1,57 @@
+{% extends "encuestas/base.html" %}
+
+{% block title %}Ayuda | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+<section class="help-page">
+  <div class="container help-shell">
+    <div class="help-header">
+      <span>Ayuda / Preguntas frecuentes</span>
+      <h1>¿Cómo participar en Planifico mi Municipio?</h1>
+      <p>
+        Esta plataforma permite registrar problemas, necesidades y propuestas ciudadanas
+        georreferenciadas para apoyar la elaboración del PAD 2026–2030.
+      </p>
+    </div>
+
+    <div class="help-grid">
+      <article class="public-card">
+        <h2>1. ¿Qué puedo registrar?</h2>
+        <p>
+          Puedes registrar problemas de infraestructura, movilidad, seguridad, medio ambiente,
+          servicios básicos, equipamiento, espacios públicos u otros temas municipales.
+        </p>
+      </article>
+
+      <article class="public-card">
+        <h2>2. ¿Debo identificarme?</h2>
+        <p>
+          No. La encuesta está pensada como un mecanismo de participación ciudadana anónima.
+          No se solicita nombre, carnet de identidad ni teléfono.
+        </p>
+      </article>
+
+      <article class="public-card">
+        <h2>3. ¿Por qué debo ubicar un punto?</h2>
+        <p>
+          La ubicación permite identificar territorialmente dónde ocurre el problema o dónde
+          debería implementarse una propuesta.
+        </p>
+      </article>
+
+      <article class="public-card">
+        <h2>4. ¿Cuándo aparece mi aporte en el mapa?</h2>
+        <p>
+          Primero queda en revisión técnica. Luego de su validación puede ser publicado
+          de forma anónima en el mapa de resultados.
+        </p>
+      </article>
+    </div>
+
+    <div class="help-actions">
+      <a href="{% url 'encuestas:participa' %}" class="home-btn-primary">Registrar mi aporte</a>
+      <a href="{% url 'encuestas:resultados' %}" class="home-btn-secondary">Ver resultados</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "encuestas/base.html" %}
+
+{% block title %}Mapa público | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+
+<section class="card">
+  <h2>Mapa público de aportes ciudadanos</h2>
+
+  <p class="intro">
+    Solo se muestran aportes revisados y publicados por el equipo técnico.
+  </p>
+
+  <div id="public-map" class="map tall-map"></div>
+
+  <div id="map-status" class="map-status">
+    Cargando mapa y aportes ciudadanos...
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  /*
+   * Centro aproximado de Sacaba
+   */
+
+  const centerLat = parseFloat("{{ map_center.lat|default:'-17.404' }}");
+  const centerLon = parseFloat("{{ map_center.lon|default:'-66.040' }}");
+  const centerZoom = parseInt("{{ map_center.zoom|default:'13' }}");
+
+  const statusBox = document.getElementById("map-status");
+
+  function setStatus(message, type = "info") {
+    if (!statusBox) return;
+    statusBox.textContent = message;
+    statusBox.className = "map-status " + type;
+  }
+
+  /*
+   * Crear mapa
+   */
+
+  const map = L.map("public-map", {
+    zoomControl: true,
+    scrollWheelZoom: true
+  }).setView([centerLat, centerLon], centerZoom);
+
+  /*
+   * Capas base.
+   * Se agregan varias opciones porque algunas redes institucionales
+   * bloquean tile.openstreetmap.org.
+   */
+
+  const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  });
+
+  const cartoLight = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 20,
+    subdomains: "abcd",
+    attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+  });
+
+  const esriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 20,
+    attribution: "Tiles &copy; Esri"
+  });
+
+  /*
+   * Primero intentamos con OpenStreetMap.
+   */
+
+  osm.addTo(map);
+
+  let osmErrorCount = 0;
+
+  osm.on("tileerror", function () {
+    osmErrorCount++;
+
+    if (osmErrorCount >= 4) {
+      map.removeLayer(osm);
+      cartoLight.addTo(map);
+      setStatus("OpenStreetMap no cargó en esta red. Se activó una capa base alternativa.", "warn");
+    }
+  });
+
+  /*
+   * Control de capas
+   */
+
+  const baseLayers = {
+    "OpenStreetMap": osm,
+    "Carto claro": cartoLight,
+    "Imagen satelital Esri": esriSat
+  };
+
+  L.control.layers(baseLayers, null, {
+    collapsed: false
+  }).addTo(map);
+
+  /*
+   * Forzar redibujado del mapa.
+   */
+
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 300);
+
+  /*
+   * Cargar aportes ciudadanos publicados desde GeoJSON
+   */
+
+  fetch("/api/registros.geojson")
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error("No se pudo cargar el GeoJSON de aportes.");
+      }
+      return response.json();
+    })
+    .then(function (data) {
+
+      if (!data.features || data.features.length === 0) {
+        setStatus("El mapa cargó correctamente, pero todavía no hay aportes publicados.", "warn");
+        return;
+      }
+
+      const aportesLayer = L.geoJSON(data, {
+        pointToLayer: function (feature, latlng) {
+          const color = feature.properties.color || "#0b5d3b";
+
+          return L.circleMarker(latlng, {
+            radius: 9,
+            fillColor: color,
+            color: "#1f2933",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.80
+          });
+        },
+
+        onEachFeature: function (feature, layer) {
+          const p = feature.properties || {};
+
+          const categoria = p.categoria || "Sin categoría";
+          const tipo = p.tipo || "Sin dato";
+          const prioridad = p.prioridad || "Sin dato";
+          const distrito = p.distrito || "Sin dato";
+          const otb = p.otb_junta_vecinal || "Sin dato";
+          const referencia = p.referencia || "Sin referencia";
+          const problema = p.problema || "";
+          const propuesta = p.propuesta || "";
+
+          let contenido = "";
+
+          contenido += "<div class='popup-aporte'>";
+          contenido += "<h3>" + categoria + "</h3>";
+          contenido += "<p><strong>Tipo:</strong> " + tipo + "</p>";
+          contenido += "<p><strong>Prioridad:</strong> " + prioridad + "</p>";
+          contenido += "<p><strong>Distrito:</strong> " + distrito + "</p>";
+          contenido += "<p><strong>OTB/Junta vecinal:</strong> " + otb + "</p>";
+          contenido += "<p><strong>Referencia:</strong> " + referencia + "</p>";
+
+          if (problema) {
+            contenido += "<hr>";
+            contenido += "<p><strong>Problema:</strong><br>" + problema + "</p>";
+          }
+
+          if (propuesta) {
+            contenido += "<hr>";
+            contenido += "<p><strong>Propuesta:</strong><br>" + propuesta + "</p>";
+          }
+
+          contenido += "</div>";
+
+          layer.bindPopup(contenido);
+        }
+      }).addTo(map);
+
+      map.fitBounds(aportesLayer.getBounds(), {
+        padding: [30, 30]
+      });
+
+      setStatus("Se cargaron " + data.features.length + " aportes ciudadanos publicados.", "ok");
+    })
+    .catch(function (error) {
+      console.error(error);
+      setStatus("El mapa cargó, pero ocurrió un error al cargar los aportes ciudadanos.", "error");
+    });
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+[
+  {"model": "encuestas.categoriaproblema", "pk": 1, "fields": {"nombre": "Movilidad y transporte", "descripcion": "Tráfico, transporte público, paradas, seguridad vial.", "color_hex": "#1565C0", "icono": "movilidad", "activo": true, "orden": 1}},
+  {"model": "encuestas.categoriaproblema", "pk": 2, "fields": {"nombre": "Infraestructura urbana", "descripcion": "Calles, aceras, puentes, equipamientos, espacios públicos.", "color_hex": "#6A1B9A", "icono": "infraestructura", "activo": true, "orden": 2}},
+  {"model": "encuestas.categoriaproblema", "pk": 3, "fields": {"nombre": "Servicios básicos", "descripcion": "Agua, alcantarillado, alumbrado público, energía.", "color_hex": "#00838F", "icono": "servicios", "activo": true, "orden": 3}},
+  {"model": "encuestas.categoriaproblema", "pk": 4, "fields": {"nombre": "Medio ambiente y riesgos", "descripcion": "Áreas verdes, contaminación, torrenteras, riesgos, residuos.", "color_hex": "#2E7D32", "icono": "ambiente", "activo": true, "orden": 4}},
+  {"model": "encuestas.categoriaproblema", "pk": 5, "fields": {"nombre": "Seguridad ciudadana", "descripcion": "Iluminación, vigilancia, puntos inseguros, convivencia.", "color_hex": "#C62828", "icono": "seguridad", "activo": true, "orden": 5}},
+  {"model": "encuestas.categoriaproblema", "pk": 6, "fields": {"nombre": "Educación, salud y desarrollo humano", "descripcion": "Unidades educativas, salud, deportes, cultura e inclusión.", "color_hex": "#EF6C00", "icono": "desarrollo_humano", "activo": true, "orden": 6}}
+]

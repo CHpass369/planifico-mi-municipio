@@ -1,0 +1,1023 @@
+{% extends "encuestas/base.html" %}
+{% load static %}
+
+{% block title %}Participa | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<section class="wizard-page">
+  <div class="wizard-card">
+    <form method="post" enctype="multipart/form-data" id="survey-form" novalidate>
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="form-errors">
+          <strong>No se pudo guardar la participación.</strong>
+          <p>Revisa los siguientes campos:</p>
+          <ul>
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+      {% endfor %}
+
+      <section class="wizard-step active" data-step="1">
+        <div class="step-heading">
+          <span>1</span>
+          <h2>Bienvenida</h2>
+        </div>
+
+        <div class="welcome-logo">
+          <img src="{% static 'encuestas/img/logo_sacaba_horizontal.png' %}" alt="Gobierno Autónomo Municipal de Sacaba" class="welcome-sacaba-logo">
+          <strong>PLANIFICO MI MUNICIPIO</strong>
+          <small>SACABA 2026 - 2030</small>
+        </div>
+
+        <h3>Tu opinión es importante</h3>
+        <p>
+          Esta encuesta es anónima y los datos serán utilizados únicamente para la planificación
+          del Plan de Desarrollo Municipal 2026 - 2030.
+        </p>
+<div class="wizard-actions single">
+          <button type="button" class="wizard-next">Comenzar →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="2">
+        <div class="step-heading">
+          <span>2</span>
+          <h2>¿Quién eres?</h2>
+        </div>
+
+        <h3>Datos generales <small>(sin identificación personal)</small></h3>
+
+        <div class="wizard-fields two-columns">
+          <label>¿Cuál es tu relación con el municipio? {{ form.relacion_municipio }}</label>
+          <label>¿Qué tipo de actor eres? {{ form.tipo_actor }}</label>
+          <label>Rango de edad {{ form.edad_rango }}</label>
+          <label>Género {{ form.genero }}</label>
+          <label>¿A qué distrito perteneces? {{ form.distrito }}</label>
+          <label>J.V., O.T.B., Comunidad y/o Sindicato <small>(opcional)</small> {{ form.otb_junta_vecinal }}</label>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="3">
+        <div class="step-heading">
+          <span>3</span>
+          <h2>Ubica el problema</h2>
+        </div>
+
+        <p>
+          Marca en el mapa el lugar donde se presenta el problema, necesidad o propuesta.
+          En celular puedes usar el botón GPS.
+        </p>
+
+        <div id="map" class="wizard-map" data-lat="-17.4038897" data-lon="-66.0402024" data-zoom="17"></div>
+
+        <button type="button" id="gps-button" class="gps-button">📍 Usar mi ubicación</button>
+
+        <p class="coords">
+          <strong>Coordenadas:</strong>
+          <span id="coords-text">sin ubicación marcada</span>
+        </p>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="4">
+        <div class="step-heading">
+          <span>4</span>
+          <h2>Cuéntanos el problema</h2>
+        </div>
+
+        <div class="problem-type-fixed">
+          <div class="problem-type-card active">⚠️ <strong>Problema</strong></div>
+        </div>
+
+        <div class="wizard-fields">
+          <label>¿A qué tema pertenece? {{ form.categoria }}</label>
+          <label>
+            Describe el problema
+            {{ form.descripcion_problema }}
+            <small id="problema-counter" class="counter warn">0/1000</small>
+          </label>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="5">
+        <div class="step-heading">
+          <span>5</span>
+          <h2>Agrega evidencia <small>(opcional)</small></h2>
+        </div>
+
+        <p>Puedes subir hasta 3 fotografías que muestren el problema o lugar.</p>
+
+        <label class="upload-box">
+          <input type="file" id="evidence-input" name="evidencias" accept="image/*" multiple>
+          <span class="camera-icon">📷</span>
+          <strong>Subir fotografía</strong>
+          <small>JPG, PNG o WEBP. Máximo 5 MB por imagen.</small>
+        </label>
+
+        <div id="evidence-preview" class="evidence-preview"></div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="6">
+        <div class="step-heading">
+          <span>6</span>
+          <h2>Propón una solución</h2>
+        </div>
+
+        <div class="wizard-fields">
+          <label>
+            ¿Qué solución propones?
+            {{ form.propuesta_mejora }}
+            <small id="propuesta-counter" class="counter warn">0/1000</small>
+          </label>
+          <label>¿Qué tipo de acción se necesita? {{ form.accion_tipo }}</label>
+          <label>¿En qué plazo debería ejecutarse? {{ form.plazo_ejecucion }}</label>
+          <label>¿Quién debería hacerse responsable? {{ form.responsable_sugerido }}</label>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="7">
+        <div class="step-heading">
+          <span>7</span>
+          <h2>Prioriza lo importante</h2>
+        </div>
+
+        <h3>¿Qué tan grave consideras este problema?</h3>
+
+        <div class="priority-grid">
+          <button type="button" class="priority-card" data-value="1">🟢<span>Baja</span></button>
+          <button type="button" class="priority-card" data-value="2">🟡<span>Media</span></button>
+          <button type="button" class="priority-card" data-value="3">🟠<span>Alta</span></button>
+          <button type="button" class="priority-card" data-value="4">🔴<span>Muy alta</span></button>
+        </div>
+
+        <div class="wizard-fields">
+          <label>¿A cuántas personas afecta aproximadamente? {{ form.personas_afectadas }}</label>
+          <label>¿Con qué frecuencia ocurre? {{ form.frecuencia_ocurre }}</label>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="8">
+        <div class="step-heading">
+          <span>8</span>
+          <h2>¿Qué municipio sueñas?</h2>
+        </div>
+
+        <p>Elige 3 modelos de municipio en orden de prioridad.</p>
+
+        <div class="city-model-grid">
+          <button type="button" class="city-option" data-value="compacta" data-desc="Crecimiento urbano ordenado, menor expansión dispersa y mejor uso del suelo urbano.">🏙️<span>Compacta</span></button>
+          <button type="button" class="city-option" data-value="proximidad_15min" data-desc="Servicios, educación, salud, comercio y espacios públicos cerca de la vivienda.">🚶<span>15 minutos</span></button>
+          <button type="button" class="city-option" data-value="verde" data-desc="Más áreas verdes, forestación, protección ambiental y espacios públicos saludables.">🌳<span>Verde</span></button>
+          <button type="button" class="city-option" data-value="resiliente" data-desc="Municipio preparado frente a riesgos, inundaciones, sequías y cambio climático.">🛡️<span>Resiliente</span></button>
+          <button type="button" class="city-option" data-value="segura" data-desc="Calles iluminadas, espacios públicos seguros, prevención y convivencia ciudadana.">✅<span>Segura</span></button>
+          <button type="button" class="city-option" data-value="inclusiva" data-desc="Municipio accesible y equitativo para niñas, jóvenes, adultos mayores y personas con discapacidad.">🤝<span>Inclusiva</span></button>
+          <button type="button" class="city-option" data-value="productiva" data-desc="Apoyo al empleo, comercio, producción local, mercados y desarrollo económico territorial.">⚙️<span>Productiva</span></button>
+          <button type="button" class="city-option" data-value="educadora" data-desc="Municipio que promueve educación, cultura ciudadana, formación comunitaria y aprendizaje permanente.">📚<span>Educadora</span></button>
+          <button type="button" class="city-option" data-value="inteligente" data-desc="Uso de tecnología, datos, mapas, sensores y gobierno digital para tomar mejores decisiones.">💡<span>Inteligente</span></button>
+          <button type="button" class="city-option" data-value="conectada" data-desc="Mejor movilidad, transporte, integración territorial y conectividad entre barrios y distritos.">🔗<span>Conectada</span></button>
+          <button type="button" class="city-option" data-value="transparente" data-desc="Gobierno abierto, información pública, seguimiento de obras y participación ciudadana.">🏛️<span>Transparente</span></button>
+          <button type="button" class="city-option" data-value="cultural" data-desc="Fortalecimiento de identidad, patrimonio, cultura, memoria colectiva y expresiones locales.">🎭<span>Cultural</span></button>
+        </div>
+
+        <div id="city-model-description" class="city-model-description">
+          Toca una opción o pasa el mouse para ver su descripción.
+        </div>
+
+        <p id="city-selected-text" class="selection-help">Selecciona 3 opciones.</p>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="9">
+        <div class="step-heading">
+          <span>9</span>
+          <h2>Tu visión al 2030</h2>
+        </div>
+
+        <p>Escribe una frase que describa el Sacaba que sueñas para el 2030.</p>
+
+        <div class="wizard-fields">
+          <label>
+            Visión ciudadana al 2030
+            {{ form.modelo_ciudad_deseada }}
+            <small id="vision-counter" class="counter warn">0/600</small>
+          </label>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="wizard-prev">Atrás</button>
+          <button type="button" class="wizard-next">Siguiente →</button>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="10">
+        <div class="step-heading">
+          <span>10</span>
+          <h2>Revisión y envío</h2>
+        </div>
+
+        <p>Revisa tu información antes de enviarla.</p>
+
+        <div class="review-box">
+          <div>📍 <strong>Ubicación:</strong> <span id="review-location">Sin ubicación</span></div>
+          <div>📂 <strong>Categoría:</strong> <span id="review-category">Sin dato</span></div>
+          <div>⚠️ <strong>Problema identificado:</strong> <span id="review-problem-detail">Sin dato</span></div>
+          <div>💡 <strong>Solución propuesta:</strong> <span id="review-solution">Sin dato</span></div>
+          <div>🛠️ <strong>Tipo de acción:</strong> <span id="review-action">Sin dato</span></div>
+          <div>🔥 <strong>Prioridad:</strong> <span id="review-priority">Sin dato</span></div>
+          <div>🏙️ <strong>Modelo de municipio seleccionado:</strong> <span id="review-city">Sin dato</span></div>
+          <div>📷 <strong>Evidencias:</strong> <span id="review-evidence">0 fotos</span></div>
+        </div>
+
+        {% if TURNSTILE_SITE_KEY %}
+          <div class="turnstile-box">
+            <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}"></div>
+          </div>
+        {% endif %}
+
+        <button type="submit" class="submit-button">Enviar mi aporte 📨</button>
+
+        <div class="wizard-actions back-only">
+          <button type="button" class="wizard-prev">Atrás</button>
+        </div>
+      </section>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  let currentStep = 1;
+  const totalSteps = 10;
+
+  const steps = document.querySelectorAll(".wizard-step");
+  const nextButtons = document.querySelectorAll(".wizard-next");
+  const prevButtons = document.querySelectorAll(".wizard-prev");
+
+  const latInput = document.getElementById("id_lat");
+  const lonInput = document.getElementById("id_lon");
+  const coordsText = document.getElementById("coords-text");
+
+  const model1 = document.getElementById("id_modelo_ciudad_prioridad_1");
+  const model2 = document.getElementById("id_modelo_ciudad_prioridad_2");
+  const model3 = document.getElementById("id_modelo_ciudad_prioridad_3");
+
+  const priorityInput = document.getElementById("id_prioridad");
+  const evidenceInput = document.getElementById("evidence-input");
+  const evidencePreview = document.getElementById("evidence-preview");
+
+  let selectedModels = [model1 && model1.value, model2 && model2.value, model3 && model3.value].filter(Boolean);
+  let selectedEvidenceCount = 0;
+
+  if (priorityInput && !priorityInput.value) {
+    priorityInput.value = "";
+  }
+
+  const mapElement = document.getElementById("map");
+  const centerLat = mapElement ? parseFloat(mapElement.dataset.lat) : -17.4038897;
+  const centerLon = mapElement ? parseFloat(mapElement.dataset.lon) : -66.0402024;
+  const centerZoom = mapElement ? parseInt(mapElement.dataset.zoom, 10) : 17;
+  const defaultMapCenter = [centerLat, centerLon];
+
+  let map = null;
+  let marker = null;
+  let mapInitialized = false;
+  let userSelectedLocation = Boolean(latInput && latInput.value && lonInput && lonInput.value);
+
+  function selectedOrDefaultCenter() {
+    if (userSelectedLocation && marker) {
+      return marker.getLatLng();
+    }
+    return defaultMapCenter;
+  }
+
+  function resetMapToDefaultCenter() {
+    if (!map) {
+      return;
+    }
+    if (!userSelectedLocation) {
+      map.invalidateSize(true);
+      map.setView(defaultMapCenter, centerZoom, { animate: false });
+    }
+  }
+
+  function initMap() {
+    if (!mapElement || typeof L === "undefined") {
+      return;
+    }
+
+    if (!mapInitialized) {
+      const mapElement = document.getElementById("map");
+      if (mapElement) {
+        mapElement.classList.add("mapa-pad-amplio");
+        if (mapElement.parentElement) {
+          mapElement.parentElement.classList.add("mapa-pad-contenedor-amplio");
+        }
+      }
+
+      map = L.map("map", {
+        zoomControl: false,
+        scrollWheelZoom: true
+      }).setView(defaultMapCenter, centerZoom);
+
+      window.planificoMap = map;
+
+      L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+      const mapaVisible = L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 20,
+          subdomains: "abcd",
+          attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+        }
+      ).addTo(map);
+
+      const osmCalles = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap contributors"
+        }
+      );
+
+      const osmHumanitario = L.tileLayer(
+        "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+        {
+          maxZoom: 20,
+          attribution: "&copy; OpenStreetMap contributors, HOT"
+        }
+      );
+
+      const esriCalles = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 20,
+          attribution: "Tiles &copy; Esri"
+        }
+      );
+
+      const esriSatelital = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 20,
+          attribution: "Tiles &copy; Esri"
+        }
+      );
+
+      const esriEtiquetas = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 20,
+          attribution: "Labels &copy; Esri"
+        }
+      );
+
+      const satelitalConEtiquetas = L.layerGroup([
+        esriSatelital,
+        esriEtiquetas
+      ]);
+
+      const topo = L.tileLayer(
+        "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom: 17,
+          attribution: "&copy; OpenStreetMap contributors, SRTM, OpenTopoMap"
+        }
+      );
+
+      const distritosMunicipalesGroup = L.layerGroup().addTo(map);
+
+      const baseMaps = {
+        "🟢 Mapa visible": mapaVisible,
+        "🛣️ Calles OSM": osmCalles,
+        "🏘️ Humanitario": osmHumanitario,
+        "🌐 Calles Esri": esriCalles,
+        "🛰️ Satelital": esriSatelital,
+        "🛰️ Satelital con etiquetas": satelitalConEtiquetas,
+        "⛰️ Topográfico": topo
+      };
+
+      const overlayMaps = {
+        "🟩 Distritos municipales": distritosMunicipalesGroup
+      };
+
+      const layersControl = L.control.layers(
+        baseMaps,
+        overlayMaps,
+        {
+          collapsed: false,
+          position: "topright"
+        }
+      ).addTo(map);
+
+      // Colocar Distritos municipales como primera opción visual del controlador
+      function ponerDistritosPrimeroEnControl() {
+        if (!layersControl || !layersControl.getContainer) return;
+
+        const container = layersControl.getContainer();
+        const list = container.querySelector(".leaflet-control-layers-list");
+        const base = container.querySelector(".leaflet-control-layers-base");
+        const overlays = container.querySelector(".leaflet-control-layers-overlays");
+        const separator = container.querySelector(".leaflet-control-layers-separator");
+
+        if (!list || !base || !overlays) return;
+
+        list.insertBefore(overlays, base);
+
+        if (separator) {
+          list.insertBefore(separator, base);
+        }
+      }
+
+      setTimeout(ponerDistritosPrimeroEnControl, 100);
+      setTimeout(ponerDistritosPrimeroEnControl, 500);
+      setTimeout(ponerDistritosPrimeroEnControl, 1200);
+
+      // Capa de distritos municipales
+      fetch("{% static 'encuestas/data/distritos_municipales.geojson' %}")
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("No se pudo cargar distritos_municipales.geojson");
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          const distritosMunicipalesLayer = L.geoJSON(data, {
+            interactive: false,
+            style: function () {
+              return {
+                color: "#16a34a",
+                weight: 2,
+                opacity: 0.78,
+                fillColor: "#86efac",
+                fillOpacity: 0.20
+              };
+            },
+            onEachFeature: function (feature, layer) {
+              const props = feature.properties || {};
+              const nombreDistrito =
+                props.Distrito ||
+                props.DISTRITO ||
+                props.distrito ||
+                props.Nombre ||
+                props.NOMBRE ||
+                props.nombre ||
+                "";
+
+              if (nombreDistrito) {
+                layer.bindTooltip(String(nombreDistrito), {
+                  permanent: true,
+                  direction: "center",
+                  className: "distrito-label-pad",
+                  opacity: 0.95
+                });
+              }
+            }
+          }).addTo(distritosMunicipalesGroup);
+
+          distritosMunicipalesLayer.bringToBack();
+        })
+        .catch(function (error) {
+          console.warn("Error cargando distritos municipales:", error);
+        });
+
+
+      map.on("click", function (event) {
+        setLocation(event.latlng.lat, event.latlng.lng, 17);
+      });
+
+      mapInitialized = true;
+    }
+
+    setTimeout(resetMapToDefaultCenter, 300);
+    setTimeout(resetMapToDefaultCenter, 700);
+  }
+
+  function setLocation(lat, lon, zoom) {
+    if (!map) {
+      initMap();
+    }
+
+    const fixedLat = Number(lat).toFixed(7);
+    const fixedLon = Number(lon).toFixed(7);
+
+    if (latInput) latInput.value = fixedLat;
+    if (lonInput) lonInput.value = fixedLon;
+    if (coordsText) coordsText.textContent = fixedLat + ", " + fixedLon;
+
+    const latlng = [parseFloat(fixedLat), parseFloat(fixedLon)];
+
+    if (marker) {
+      marker.setLatLng(latlng);
+    } else if (map) {
+      marker = L.marker(latlng).addTo(map);
+    }
+
+    userSelectedLocation = true;
+
+    if (map) {
+      map.invalidateSize(true);
+      map.setView(latlng, zoom || 17, { animate: false });
+    }
+
+    if (marker) {
+      marker.bindPopup("Ubicación seleccionada").openPopup();
+    }
+  }
+
+  if (userSelectedLocation && latInput && lonInput) {
+    setTimeout(function () {
+      if (mapInitialized) {
+        setLocation(parseFloat(latInput.value), parseFloat(lonInput.value), 17);
+      }
+    }, 0);
+  }
+
+  function showStep(stepNumber) {
+    currentStep = stepNumber;
+
+    steps.forEach(function (step) {
+      step.classList.remove("active");
+    });
+
+    const activeStep = document.querySelector('.wizard-step[data-step="' + stepNumber + '"]');
+    if (activeStep) {
+      activeStep.classList.add("active");
+    }
+
+    if (stepNumber === 3) {
+      initMap();
+      setTimeout(resetMapToDefaultCenter, 1000);
+    }
+
+    if (stepNumber === 10) {
+      updateReview();
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function validateStep(stepNumber) {
+    if (stepNumber === 1) {
+      return true;
+    }
+
+    if (stepNumber === 3) {
+      if (!latInput || !lonInput || !latInput.value || !lonInput.value) {
+        alert("Debes marcar una ubicación en el mapa o usar el botón GPS.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 4) {
+      const categoria = document.getElementById("id_categoria");
+      const problema = document.getElementById("id_descripcion_problema");
+      if (!categoria || !categoria.value) {
+        alert("Selecciona el tema al que pertenece el problema.");
+        return false;
+      }
+      if (!problema || problema.value.trim().length < 30) {
+        alert("Describe el problema con al menos 30 caracteres.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 6) {
+      const propuesta = document.getElementById("id_propuesta_mejora");
+      if (!propuesta || propuesta.value.trim().length < 30) {
+        alert("Describe la solución con al menos 30 caracteres.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 7) {
+      if (!priorityInput || !priorityInput.value) {
+        alert("Selecciona la gravedad o importancia del problema.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 8) {
+      if (selectedModels.length !== 3) {
+        alert("Debes seleccionar exactamente 3 modelos de municipio.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 9) {
+      const vision = document.getElementById("id_modelo_ciudad_deseada");
+      if (!vision || vision.value.trim().length < 20) {
+        alert("Escribe una visión al 2030 con al menos 20 caracteres.");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  nextButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (!validateStep(currentStep)) return;
+      if (currentStep < totalSteps) showStep(currentStep + 1);
+    });
+  });
+
+  prevButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (currentStep > 1) showStep(currentStep - 1);
+    });
+  });
+
+  const gpsButton = document.getElementById("gps-button");
+  if (gpsButton) {
+    gpsButton.addEventListener("click", function () {
+      if (!navigator.geolocation) {
+        alert("Tu navegador no permite geolocalización.");
+        return;
+      }
+
+      gpsButton.textContent = "Buscando ubicación...";
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          setLocation(position.coords.latitude, position.coords.longitude, 18);
+          gpsButton.textContent = "📍 Usar mi ubicación";
+        },
+        function () {
+          alert("No se pudo obtener tu ubicación. Revisa los permisos GPS del navegador.");
+          gpsButton.textContent = "📍 Usar mi ubicación";
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  }
+
+  function bindCounter(fieldId, counterId, maxChars, minChars) {
+    const field = document.getElementById(fieldId);
+    const counter = document.getElementById(counterId);
+    if (!field || !counter) return;
+
+    function updateCounter() {
+      const length = field.value.trim().length;
+      counter.textContent = length + "/" + maxChars;
+      if (length >= minChars) {
+        counter.classList.remove("warn");
+        counter.classList.add("ok");
+      } else {
+        counter.classList.remove("ok");
+        counter.classList.add("warn");
+      }
+    }
+
+    field.addEventListener("input", updateCounter);
+    updateCounter();
+  }
+
+  bindCounter("id_descripcion_problema", "problema-counter", 1000, 30);
+  bindCounter("id_propuesta_mejora", "propuesta-counter", 1000, 30);
+  bindCounter("id_modelo_ciudad_deseada", "vision-counter", 600, 20);
+
+  document.querySelectorAll(".priority-card").forEach(function (button) {
+    if (priorityInput && priorityInput.value === button.dataset.value) {
+      button.classList.add("active");
+    }
+
+    button.addEventListener("click", function () {
+      document.querySelectorAll(".priority-card").forEach(function (b) {
+        b.classList.remove("active");
+      });
+      button.classList.add("active");
+      if (priorityInput) priorityInput.value = button.dataset.value;
+    });
+  });
+
+  function updateModelInputs() {
+    if (model1) model1.value = selectedModels[0] || "";
+    if (model2) model2.value = selectedModels[1] || "";
+    if (model3) model3.value = selectedModels[2] || "";
+
+    document.querySelectorAll(".city-option").forEach(function (button) {
+      const value = button.dataset.value;
+      const index = selectedModels.indexOf(value);
+      button.classList.remove("active");
+      button.removeAttribute("data-order");
+      if (index !== -1) {
+        button.classList.add("active");
+        button.setAttribute("data-order", index + 1);
+      }
+    });
+
+    const helper = document.getElementById("city-selected-text");
+    if (helper) helper.textContent = "Seleccionadas: " + selectedModels.length + "/3";
+  }
+
+  function showCityModelDescription(button) {
+    const box = document.getElementById("city-model-description");
+    if (!box) return;
+    const title = button.querySelector("span") ? button.querySelector("span").textContent : "";
+    const desc = button.dataset.desc || "";
+    box.innerHTML = "<strong>" + title + ":</strong> " + desc;
+  }
+
+  document.querySelectorAll(".city-option").forEach(function (button) {
+    button.addEventListener("mouseenter", function () { showCityModelDescription(button); });
+    button.addEventListener("focus", function () { showCityModelDescription(button); });
+    button.addEventListener("touchstart", function () { showCityModelDescription(button); }, { passive: true });
+
+    button.addEventListener("click", function () {
+      showCityModelDescription(button);
+      const value = button.dataset.value;
+      const existingIndex = selectedModels.indexOf(value);
+
+      if (existingIndex !== -1) {
+        selectedModels.splice(existingIndex, 1);
+      } else {
+        if (selectedModels.length >= 3) {
+          alert("Solo puedes seleccionar 3 modelos de municipio.");
+          return;
+        }
+        selectedModels.push(value);
+      }
+
+      updateModelInputs();
+    });
+  });
+
+  updateModelInputs();
+
+  if (evidenceInput) {
+    evidenceInput.addEventListener("change", function () {
+      const files = Array.from(evidenceInput.files);
+      if (files.length > 3) {
+        alert("Solo puedes subir hasta 3 fotografías.");
+        evidenceInput.value = "";
+        selectedEvidenceCount = 0;
+        if (evidencePreview) evidencePreview.innerHTML = "";
+        return;
+      }
+
+      if (evidencePreview) evidencePreview.innerHTML = "";
+      selectedEvidenceCount = files.length;
+
+      files.forEach(function (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          alert("Cada imagen debe pesar como máximo 5 MB.");
+          evidenceInput.value = "";
+          selectedEvidenceCount = 0;
+          if (evidencePreview) evidencePreview.innerHTML = "";
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          if (!evidencePreview) return;
+          const item = document.createElement("div");
+          item.className = "evidence-thumb";
+          item.innerHTML = "<img src='" + event.target.result + "' alt='Evidencia'>";
+          evidencePreview.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  }
+
+  function optionText(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select || select.selectedIndex < 0) return "Sin dato";
+    return select.options[select.selectedIndex].text || "Sin dato";
+  }
+
+  function fieldText(inputId, emptyText) {
+    const field = document.getElementById(inputId);
+    if (!field) return emptyText || "Sin dato";
+    const value = field.value.trim();
+    return value || emptyText || "Sin dato";
+  }
+
+  function shortText(text, maxLength) {
+    if (!text) return "Sin dato";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  }
+
+  function priorityText(value) {
+    const labels = { "1": "Baja", "2": "Media", "3": "Alta", "4": "Muy alta" };
+    return labels[value] || "Sin dato";
+  }
+
+  function cityLabel(value) {
+    const labels = {
+      compacta: "Compacta",
+      proximidad_15min: "15 minutos",
+      verde: "Verde",
+      resiliente: "Resiliente",
+      segura: "Segura",
+      inclusiva: "Inclusiva",
+      productiva: "Productiva",
+      educadora: "Educadora",
+      inteligente: "Inteligente",
+      conectada: "Conectada",
+      transparente: "Transparente",
+      cultural: "Cultural"
+    };
+    return labels[value] || value;
+  }
+
+  function updateReview() {
+    document.getElementById("review-location").textContent =
+      latInput && latInput.value && lonInput && lonInput.value ? latInput.value + ", " + lonInput.value : "Sin ubicación";
+    document.getElementById("review-category").textContent = optionText("id_categoria");
+    document.getElementById("review-problem-detail").textContent = shortText(fieldText("id_descripcion_problema", "Sin dato"), 140);
+    document.getElementById("review-solution").textContent = shortText(fieldText("id_propuesta_mejora", "Sin dato"), 140);
+    document.getElementById("review-action").textContent = optionText("id_accion_tipo");
+    document.getElementById("review-priority").textContent = priorityText(priorityInput ? priorityInput.value : "");
+    document.getElementById("review-city").textContent = selectedModels.map(cityLabel).join(", ") || "Sin dato";
+    document.getElementById("review-evidence").textContent = selectedEvidenceCount + " fotos";
+  }
+
+  const surveyForm = document.getElementById("survey-form");
+  if (surveyForm) {
+    surveyForm.addEventListener("submit", function (event) {
+      if (!validateStep(1) || !validateStep(3) || !validateStep(4) || !validateStep(6) || !validateStep(7) || !validateStep(8) || !validateStep(9)) {
+        event.preventDefault();
+        return false;
+      }
+    });
+  }
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("form");
+  const warning = document.getElementById("turnstile-warning");
+
+  if (!form) return;
+
+  form.addEventListener("submit", function (event) {
+    const turnstileBox = document.querySelector(".cf-turnstile");
+
+    // Si no hay Turnstile configurado/visible, no bloquea.
+    if (!turnstileBox) return;
+
+    const responseInput = document.querySelector('input[name="cf-turnstile-response"]');
+    const responseValue = responseInput ? responseInput.value.trim() : "";
+
+    if (!responseValue) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (warning) {
+        warning.style.display = "block";
+      }
+
+      const lastStep = document.querySelector(".wizard-step:last-of-type");
+      if (lastStep) {
+        document.querySelectorAll(".wizard-step").forEach(function (step) {
+          step.classList.remove("active");
+          step.style.display = "none";
+        });
+
+        lastStep.classList.add("active");
+        lastStep.style.display = "block";
+      }
+
+      turnstileBox.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      alert("Completa la verificación de persona antes de enviar tu aporte.");
+      return false;
+    }
+
+    if (warning) {
+      warning.style.display = "none";
+    }
+  });
+});
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const mapEl = document.getElementById("map");
+  if (!mapEl) return;
+
+  const step = mapEl.closest(".wizard-step");
+  if (step) {
+    step.classList.add("paso-mapa-amplio");
+  }
+
+  let parent = mapEl.parentElement;
+  while (parent && parent !== document.body) {
+    parent.classList.add("contenedor-mapa-amplio");
+    parent = parent.parentElement;
+    if (parent && parent.classList && parent.classList.contains("wizard-step")) {
+      break;
+    }
+  }
+
+  setTimeout(function () {
+    if (window.map && typeof window.map.invalidateSize === "function") {
+      window.map.invalidateSize();
+    }
+  }, 500);
+});
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function prepararMapaPAD() {
+    const mapEl = document.getElementById("map");
+    if (!mapEl) return;
+
+    mapEl.classList.add("mapa-pad-fullwidth");
+
+    const step = mapEl.closest(".wizard-step");
+    if (step) {
+      step.classList.add("paso-mapa-pad");
+    }
+
+    let parent = mapEl.parentElement;
+    while (parent && parent !== document.body) {
+      parent.classList.add("overflow-mapa-pad");
+      parent = parent.parentElement;
+    }
+
+    setTimeout(function () {
+      if (window.planificoMap && typeof window.planificoMap.invalidateSize === "function") {
+        window.planificoMap.invalidateSize();
+      }
+    }, 300);
+
+    setTimeout(function () {
+      if (window.planificoMap && typeof window.planificoMap.invalidateSize === "function") {
+        window.planificoMap.invalidateSize();
+      }
+    }, 900);
+  }
+
+  prepararMapaPAD();
+
+  document.querySelectorAll(".wizard-next, .wizard-prev").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      setTimeout(prepararMapaPAD, 350);
+    });
+  });
+});
+</script>
+
+{% endblock %}

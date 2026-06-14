@@ -1,0 +1,162 @@
+{% extends 'encuestas/base.html' %}
+{% load static %}
+
+{% block title %}Inicio | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+
+<section class="home-hero-modern">
+  <div class="home-container home-hero-grid">
+    <div class="home-hero-copy">
+      <p class="home-eyebrow">Participación ciudadana para el PAD 2026–2030</p>
+
+      <h1>
+        Construyamos juntos<br>
+        el futuro de <span>Sacaba</span>
+      </h1>
+
+      <p class="home-lead">
+        Registra problemas, propuestas y prioridades territoriales en el mapa.
+        Tus aportes ayudarán a orientar la planificación municipal y la elaboración del PAD.
+      </p>
+
+      <div class="home-hero-actions">
+        <a href="{% url 'encuestas:participa' %}" class="home-btn-primary">
+          <span>✎</span>
+          Registrar mi aporte
+        </a>
+
+        <a href="{% url 'encuestas:resultados' %}" class="home-btn-secondary">
+          <span>🗺</span>
+          Ver resultados en el mapa
+        </a>
+      </div>
+
+      <div class="home-privacy-note">
+        <span>🛡</span>
+        <p>
+          Tus datos serán utilizados únicamente con fines de planificación municipal.<br>
+          La información será revisada técnicamente antes de su publicación.
+        </p>
+      </div>
+    </div>
+
+    <div class="home-hero-visual">
+      <img
+        src="{% static 'encuestas/img/home_hero_sacaba.png' %}"
+        alt="Mapa ilustrativo de Sacaba con aportes ciudadanos georreferenciados"
+        class="home-hero-map"
+      >
+    </div>
+
+    <aside class="home-stats-stack" aria-label="Indicadores de participación">
+      <article class="home-stat-card green">
+        <div class="home-stat-icon">👥</div>
+        <div>
+          <strong>{{ total|default:0 }}</strong>
+          <span>Aportes registrados</span>
+          <small>Total de participaciones recibidas</small>
+        </div>
+      </article>
+
+      <article class="home-stat-card blue">
+        <div class="home-stat-icon">✓</div>
+        <div>
+          <strong>{{ publicados|default:0 }}</strong>
+          <span>Aportes publicados</span>
+          <small>Disponibles para consulta ciudadana</small>
+        </div>
+      </article>
+
+      <article class="home-stat-card amber">
+        <div class="home-stat-icon">◷</div>
+        <div>
+          <strong>{{ revision|default:0 }}</strong>
+          <span>En revisión técnica</span>
+          <small>Pendientes de validación municipal</small>
+        </div>
+      </article>
+
+      <article class="home-stat-card purple">
+        <div class="home-stat-icon">▥</div>
+        <div>
+          <strong>{{ distritos_participacion|default:0 }}</strong>
+          <span>Distritos con participación</span>
+          <small>Aportes recibidos en el municipio</small>
+        </div>
+      </article>
+    </aside>
+  </div>
+</section>
+
+<section class="home-container home-steps-grid">
+  <article class="home-step-card">
+    <div class="home-step-icon green">📍</div>
+    <div>
+      <h2>1. Identifica un problema</h2>
+      <p>
+        Puedes registrar problemas de movilidad, seguridad, medio ambiente,
+        servicios básicos, equipamiento urbano, infraestructura u otros temas.
+      </p>
+    </div>
+  </article>
+
+  <article class="home-step-card">
+    <div class="home-step-icon amber">💡</div>
+    <div>
+      <h2>2. Propón una mejora</h2>
+      <p>
+        Además del problema, puedes plantear soluciones o proyectos que consideres
+        necesarios para mejorar tu barrio, distrito o municipio.
+      </p>
+    </div>
+  </article>
+
+  <article class="home-step-card">
+    <div class="home-step-icon teal">🗺</div>
+    <div>
+      <h2>3. Ubica tu aporte</h2>
+      <p>
+        Marca en el mapa el punto aproximado donde se encuentra el problema
+        o donde debería implementarse la propuesta.
+      </p>
+    </div>
+  </article>
+
+  <article class="home-step-card">
+    <div class="home-step-icon lime">🏙</div>
+    <div>
+      <h2>4. Imagina tu municipio</h2>
+      <p>
+        Describe cómo deseas que sea Sacaba en los próximos años: verde, seguro,
+        productivo, inclusivo, ordenado, moderno y sostenible.
+      </p>
+    </div>
+  </article>
+</section>
+
+<section class="home-container home-participation-band">
+  <div class="home-participation-image">
+    <img
+      src="{% static 'encuestas/img/home_participacion.svg' %}"
+      alt="Ciudadanas y ciudadanos participando en la planificación municipal"
+    >
+  </div>
+
+  <div class="home-participation-copy">
+    <h2>Tu participación es importante</h2>
+    <p>
+      Cada aporte cuenta para construir el municipio que todas y todos queremos.
+    </p>
+  </div>
+
+  <div class="home-participation-action">
+    <a href="{% url 'encuestas:resultados' %}" class="home-btn-light">
+      <span>🗺</span>
+      Ver mapa de resultados
+    </a>
+    <small>Explora los aportes ciudadanos en el mapa</small>
+  </div>
+</section>
+
+{% endblock %}

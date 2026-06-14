@@ -1,0 +1,261 @@
+{% extends 'encuestas/base.html' %}
+
+{% block title %}Modelo de Ciudad | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+
+<section class="modelo-public-page">
+  <div class="container">
+    <div class="modelo-shell">
+
+      <div class="modelo-badge">
+        MODELO DE CIUDAD DESEADA
+      </div>
+
+      <div class="modelo-header">
+        <div>
+          <h1>¿Qué municipio sueña la ciudadanía?</h1>
+          <p>
+            Esta nube resume las palabras más repetidas por la población sobre el
+            municipio que desea construir hacia el 2030.
+          </p>
+        </div>
+
+        <a href="/participa/" class="participate-button modelo-cta">
+          Participa ahora
+        </a>
+      </div>
+
+      <section class="modelo-dashboard">
+        <article class="modelo-cloud-card">
+          <div class="cloud-title-row">
+            <div>
+              <h2>Nube de palabras</h2>
+              <p>Mientras más grande aparece una palabra, mayor es su frecuencia.</p>
+            </div>
+
+            <div class="cloud-counter">
+              <strong id="modelo-total">0</strong>
+              <span>respuestas</span>
+            </div>
+          </div>
+
+          <div id="word-cloud-visual" class="word-cloud-visual">
+            <p class="empty">Cargando nube de palabras...</p>
+          </div>
+        </article>
+
+        <aside class="modelo-side-card">
+          <h2>Palabras más repetidas</h2>
+          <div id="top-words" class="top-word-list"></div>
+        </aside>
+      </section>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-cloud@1/build/d3.layout.cloud.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const cloud = document.getElementById("word-cloud-visual");
+  const topWords = document.getElementById("top-words");
+  const modeloTotal = document.getElementById("modelo-total");
+
+  const palette = [
+    "#0b5d3b",
+    "#14532d",
+    "#166534",
+    "#15803d",
+    "#4d7c0f",
+    "#65a30d",
+    "#854d0e",
+    "#3f2f1c"
+  ];
+
+  function escapeHTML(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function renderWordCloud(words) {
+    cloud.innerHTML = "";
+
+    if (!words || words.length === 0) {
+      cloud.innerHTML = "<p class='empty'>Todavía no existen suficientes respuestas publicadas.</p>";
+      return;
+    }
+
+    if (typeof d3 === "undefined" || !d3.layout || !d3.layout.cloud) {
+      cloud.innerHTML = "<p class='empty'>No se pudo cargar la librería de nube de palabras.</p>";
+      return;
+    }
+
+    const width = cloud.clientWidth || 900;
+    const height = cloud.clientHeight || 480;
+
+    const maxCount = d3.max(words, function (d) {
+      return d.count || 1;
+    });
+
+    const minCount = d3.min(words, function (d) {
+      return d.count || 1;
+    });
+
+    const fontScale = d3.scaleSqrt()
+      .domain([minCount, maxCount])
+      .range([18, 82]);
+
+    const preparedWords = words.slice(0, 55).map(function (item, index) {
+      return {
+        text: item.text,
+        size: fontScale(item.count || 1),
+        count: item.count || 1,
+        color: palette[index % palette.length]
+      };
+    });
+
+    d3.layout.cloud()
+      .size([width, height])
+      .words(preparedWords)
+      .padding(5)
+      .rotate(function (_, index) {
+        if (index === 0) {
+          return 0;
+        }
+
+        const rotations = [0, 0, 0, 0, -90, 90, -12, 12];
+        return rotations[index % rotations.length];
+      })
+      .font("Arial")
+      .fontWeight(function (_, index) {
+        return index < 6 ? 900 : 800;
+      })
+      .fontSize(function (d) {
+        return d.size;
+      })
+      .spiral("archimedean")
+      .on("end", drawCloud)
+      .start();
+
+    function drawCloud(layoutWords) {
+      cloud.innerHTML = "";
+
+      const svg = d3.select(cloud)
+        .append("svg")
+        .attr("viewBox", "0 0 " + width + " " + height)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("class", "cloud-svg");
+
+      const group = svg.append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+      group.selectAll("text")
+        .data(layoutWords)
+        .enter()
+        .append("text")
+        .attr("class", function (_, index) {
+          return index === 0 ? "cloud-svg-word main-word" : "cloud-svg-word";
+        })
+        .style("font-family", "Arial, Helvetica, sans-serif")
+        .style("font-size", function (d) {
+          return d.size + "px";
+        })
+        .style("font-weight", function (_, index) {
+          return index < 6 ? 900 : 800;
+        })
+        .style("fill", function (d) {
+          return d.color;
+        })
+        .style("cursor", "default")
+        .attr("text-anchor", "middle")
+        .attr("transform", function (d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function (d) {
+          return d.text;
+        })
+        .append("title")
+        .text(function (d) {
+          return d.count + " menciones";
+        });
+    }
+  }
+
+  function renderTopWords(words) {
+    topWords.innerHTML = "";
+
+    if (!words || words.length === 0) {
+      topWords.innerHTML = "<p class='empty'>Sin datos.</p>";
+      return;
+    }
+
+    const maxCount = Math.max.apply(null, words.map(function (item) {
+      return item.count || 1;
+    }));
+
+    words.slice(0, 12).forEach(function (item, index) {
+      const pct = maxCount > 0 ? Math.round((item.count / maxCount) * 100) : 0;
+
+      const row = document.createElement("div");
+      row.className = "top-word-row";
+
+      row.innerHTML =
+        "<div class='top-word-head'>" +
+          "<span>" + (index + 1) + ". " + escapeHTML(item.text) + "</span>" +
+          "<strong>" + escapeHTML(item.count) + "</strong>" +
+        "</div>" +
+        "<div class='top-word-track'>" +
+          "<div class='top-word-fill' style='width:" + pct + "%'></div>" +
+        "</div>";
+
+      topWords.appendChild(row);
+    });
+  }
+
+  function cargarModeloCiudad() {
+    fetch("/api/estadisticas.json")
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("No se pudo cargar estadísticas.");
+        }
+
+        return response.json();
+      })
+      .then(function (data) {
+        modeloTotal.textContent = data.modelo_total || 0;
+
+        renderWordCloud(data.nube_palabras || []);
+        renderTopWords(data.nube_palabras || []);
+      })
+      .catch(function (error) {
+        console.error(error);
+        cloud.innerHTML = "<p class='empty'>No se pudo cargar la nube de palabras.</p>";
+      });
+  }
+
+  cargarModeloCiudad();
+
+  window.addEventListener("resize", function () {
+    cargarModeloCiudad();
+  });
+
+  setInterval(cargarModeloCiudad, 15000);
+});
+</script>
+
+{% endblock %}

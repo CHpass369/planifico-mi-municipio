@@ -1,0 +1,33 @@
+{% extends "encuestas/base.html" %}
+
+{% block title %}Gracias por participar | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+<section class="thanks-page">
+  <div class="thanks-card">
+    <div class="thanks-icon">✅</div>
+
+    <h1>¡Gracias por participar!</h1>
+
+    <p>
+      Tu aporte fue registrado correctamente. Será revisado por el equipo técnico
+      antes de publicarse en el mapa de resultados.
+    </p>
+
+    <div class="thanks-code">
+      <span>Código de participación</span>
+      <strong>{{ codigo_publico }}</strong>
+    </div>
+
+    <div class="thanks-actions">
+      <a href="{% url 'encuestas:participa' %}" class="button-primary">
+        Registrar otro aporte
+      </a>
+
+      <a href="{% url 'encuestas:resultados' %}" class="button-secondary">
+        Ver resultados
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
