@@ -32,6 +32,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
 
 INSTALLED_APPS = [
+    "gobernanza",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

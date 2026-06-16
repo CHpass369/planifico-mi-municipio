@@ -1,0 +1,415 @@
+{% extends "encuestas/base.html" %}
+
+{% block title %}Medición de gobernanza | Planifico mi Municipio{% endblock %}
+
+{% block content %}
+<style>
+:root {
+      --verde: #0f7a3b;
+      --verde-2: #16a34a;
+      --dorado: #d4af37;
+      --fondo: #f3f6f4;
+      --texto: #111827;
+      --gris: #64748b;
+      --borde: #d9e2dc;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ecfdf5, #f8fafc);
+      color: var(--texto);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 28px auto 60px;
+    }
+
+    .form-card {
+      background: #ffffff;
+      border: 1px solid var(--borde);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    .datos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      font-weight: 900;
+      color: #1f2937;
+    }
+
+    .form-control {
+      width: 100%;
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 11px 12px;
+      font-size: 15px;
+      background: #f8fafc;
+    }
+
+    .dimension {
+      border: 1px solid var(--borde);
+      border-radius: 22px;
+      overflow: hidden;
+      margin: 18px 0;
+      background: #fff;
+    }
+
+    .dimension-header {
+      background: linear-gradient(90deg, #14532d, #16a34a);
+      color: #ffffff;
+      padding: 16px 18px;
+    }
+
+    .dimension-header h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+
+    .dimension-header p {
+      margin: 0;
+      opacity: .92;
+      font-size: 14px;
+    }
+
+    .question {
+      display: grid;
+      grid-template-columns: 230px 1fr 320px;
+      gap: 16px;
+      padding: 16px 18px;
+      border-top: 1px solid var(--borde);
+      align-items: center;
+    }
+
+    .question:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .elemento {
+      font-weight: 950;
+      color: #0f172a;
+    }
+
+    .pregunta {
+      color: #334155;
+      line-height: 1.42;
+      font-weight: 650;
+    }
+
+    .radios ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .radios li label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 42px;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      background: #ffffff;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .radios input {
+      accent-color: var(--verde);
+    }
+
+    .escala {
+      margin: 22px 0;
+      border: 1px solid var(--borde);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .escala h3 {
+      margin: 0;
+      padding: 14px 16px;
+      background: #334155;
+      color: #fff;
+    }
+
+    .escala table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .escala th, .escala td {
+      border-top: 1px solid var(--borde);
+      padding: 10px;
+      text-align: left;
+    }
+
+    .escala th {
+      background: #facc15;
+    }
+
+    .score-box {
+      position: sticky;
+      bottom: 14px;
+      z-index: 10;
+      background: #064e3b;
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.20);
+      margin-top: 20px;
+    }
+
+    .score-box strong {
+      font-size: 20px;
+    }
+
+    .btn-submit {
+      border: none;
+      background: #facc15;
+      color: #1f2937;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 950;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .errors {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-weight: 800;
+    }
+
+
+    .radios li:nth-child(1) label,
+    .escala-color-1 td {
+      background: #fee2e2 !important;
+      border-color: #fecaca !important;
+      color: #7f1d1d !important;
+    }
+
+    .radios li:nth-child(2) label,
+    .escala-color-2 td {
+      background: #ffedd5 !important;
+      border-color: #fed7aa !important;
+      color: #7c2d12 !important;
+    }
+
+    .radios li:nth-child(3) label,
+    .escala-color-3 td {
+      background: #fef9c3 !important;
+      border-color: #fde68a !important;
+      color: #713f12 !important;
+    }
+
+    .radios li:nth-child(4) label,
+    .escala-color-4 td {
+      background: #dbeafe !important;
+      border-color: #bfdbfe !important;
+      color: #1e3a8a !important;
+    }
+
+    .radios li:nth-child(5) label,
+    .escala-color-5 td {
+      background: #dcfce7 !important;
+      border-color: #bbf7d0 !important;
+      color: #14532d !important;
+    }
+
+    .radios li label:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+    }
+
+    .radios input:checked {
+      outline: 2px solid #0f7a3b;
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 900px) {
+      .datos-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .question {
+        grid-template-columns: 1fr;
+      }
+
+      .radios ul {
+        grid-template-columns: 1fr;
+      }
+
+      .score-box {
+        position: static;
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+</style>
+
+<main class="page">
+<form method="post" class="form-card" id="gobernanza-form">
+      {% csrf_token %}
+
+      {% if form.errors %}
+      <div class="errors">
+        Revise el formulario. Todas las preguntas del cuestionario deben tener una respuesta.
+      </div>
+      {% endif %}
+
+      
+      <div class="datos-grid">
+        <div class="field">
+          {{ form.tipo_actor.label_tag }}
+          {{ form.tipo_actor }}
+        </div>
+
+        <div class="field">
+          {{ form.nombre_actor.label_tag }}
+          {{ form.nombre_actor }}
+        </div>
+      </div>
+
+
+      {% for grupo in grupos %}
+      <section class="dimension">
+        <div class="dimension-header">
+          <h2>{{ grupo.dimension }}</h2>
+          <p>{{ grupo.descripcion }}</p>
+        </div>
+
+        {% for elemento, campo in grupo.campos %}
+        <div class="question">
+          <div class="elemento">{{ elemento }}</div>
+          <div class="pregunta">{{ campo.label }}</div>
+          <div class="radios">{{ campo }}</div>
+        </div>
+        {% endfor %}
+      </section>
+      {% endfor %}
+
+      <div class="field">
+        {{ form.observaciones.label_tag }}
+        {{ form.observaciones }}
+      </div>
+      <section class="escala">
+        <h3>Opciones de respuesta</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Valor</th>
+              <th>Respuesta</th>
+              <th>Significado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="escala-color-1">
+              <td>1</td>
+              <td>Nunca</td>
+              <td>La situación descrita no se realiza en la institución.</td>
+            </tr>
+            <tr class="escala-color-2">
+              <td>2</td>
+              <td>Casi nunca</td>
+              <td>La situación se realiza de forma muy limitada o excepcional.</td>
+            </tr>
+            <tr class="escala-color-3">
+              <td>3</td>
+              <td>A veces</td>
+              <td>La situación se realiza de manera ocasional o parcial.</td>
+            </tr>
+            <tr class="escala-color-4">
+              <td>4</td>
+              <td>Casi siempre</td>
+              <td>La situación se realiza con frecuencia, aunque todavía puede mejorar.</td>
+            </tr>
+            <tr class="escala-color-5">
+              <td>5</td>
+              <td>Siempre</td>
+              <td>La situación se realiza de manera permanente o adecuada.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+
+      <div class="score-box">
+        <div>
+          <div>Puntaje preliminar</div>
+          <strong><span id="score-total">0</span> / 50</strong>
+          <span id="score-nivel"> · Complete las 11 preguntas</span>
+        </div>
+
+        <button type="submit" class="btn-submit">Guardar cuestionario</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    function actualizarPuntaje() {
+      const seleccionados = document.querySelectorAll('input[type="radio"]:checked');
+      let total = 0;
+
+      seleccionados.forEach(function (radio) {
+        total += parseInt(radio.value || "0", 10);
+      });
+
+      const score = document.getElementById("score-total");
+      const nivel = document.getElementById("score-nivel");
+
+      score.textContent = total;
+
+      if (seleccionados.length < 10) {
+        nivel.textContent = " · Complete las " + (10 - seleccionados.length) + " preguntas restantes";
+        return;
+      }
+
+      if (total <= 18) {
+        nivel.textContent = " · Nivel muy bajo";
+      } else if (total <= 26) {
+        nivel.textContent = " · Nivel bajo";
+      } else if (total <= 34) {
+        nivel.textContent = " · Nivel medio";
+      } else if (total <= 42) {
+        nivel.textContent = " · Nivel alto";
+      } else {
+        nivel.textContent = " · Nivel muy alto";
+      }
+    }
+
+    document.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+      radio.addEventListener("change", actualizarPuntaje);
+    });
+
+    actualizarPuntaje();
+  </script>
+{% endblock %}

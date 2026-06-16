@@ -14,30 +14,177 @@
   {% if TURNSTILE_SITE_KEY %}
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   {% endif %}
+
+
+
+
+<style id="footer-institucional-css">
+  .footer-institucional {
+    margin-top: 42px;
+    background: #ffffff;
+    border-top: 1px solid #1f2937;
+    padding: 24px 0 28px;
+  }
+
+  .footer-institucional-inner {
+    width: min(1180px, calc(100% - 36px));
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.7fr .9fr;
+    gap: 42px;
+    align-items: start;
+  }
+
+  .footer-title-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .footer-title-line span {
+    width: 26px;
+    height: 1px;
+    background: #1f2937;
+    display: inline-block;
+  }
+
+  .footer-title-line h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 900;
+    color: #1f2937;
+  }
+
+  .footer-contacto-content h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 900;
+    color: #1f2937;
+  }
+
+  .footer-contacto-content p {
+    margin: 8px 0;
+    color: #111827;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .footer-contacto-content strong {
+    font-weight: 900;
+  }
+
+  .footer-redes {
+    text-align: center;
+    padding-top: 52px;
+  }
+
+  .footer-redes h3 {
+    margin: 0 0 18px;
+    font-size: 17px;
+    font-weight: 900;
+    color: #1f2937;
+  }
+
+  .footer-redes-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .red-social {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    text-decoration: none;
+    transition: transform .18s ease, opacity .18s ease;
+  }
+
+  .red-social:hover {
+    transform: translateY(-2px) scale(1.04);
+    opacity: .9;
+  }
+
+  .red-social svg {
+    width: 34px;
+    height: 34px;
+    fill: currentColor;
+  }
+
+  .red-social.facebook {
+    color: #1877f2;
+  }
+
+  .red-social.tiktok {
+    color: #111827;
+  }
+
+  .red-social.youtube {
+    color: #ff0000;
+  }
+
+  .red-social.web {
+    color: #0f7a3b;
+  }
+
+  @media (max-width: 820px) {
+    .footer-institucional-inner {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .footer-redes {
+      text-align: left;
+      padding-top: 0;
+    }
+
+    .footer-redes-icons {
+      justify-content: flex-start;
+    }
+  }
+</style>
+
+
+  <!-- Favicon institucional GAMS Sacaba -->
+  <link rel="icon" type="image/x-icon" href="{% static 'encuestas/img/favicon/favicon.ico' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'encuestas/img/favicon/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'encuestas/img/favicon/favicon-192x192.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'encuestas/img/favicon/favicon-180x180.png' %}">
+
 </head>
 
 <body>
   <header class="site-topbar">
     <div class="site-topbar-inner">
-      <a class="site-brand" href="{% url 'encuestas:inicio' %}">
-        <img
-          src="{% static 'encuestas/img/logo_sacaba_horizontal.png' %}"
-          alt="Gobierno Autónomo Municipal de Sacaba"
-          class="site-brand-logo"
-        >
+      <a class="site-brand site-brand-refined" href="{% url 'encuestas:inicio' %}" aria-label="Inicio - Planifico mi Municipio">
+        <span class="brand-seal-orbit" aria-hidden="true">
+          <img
+            src="{% static 'encuestas/img/logo_sacaba_escudo.png' %}"
+            alt=""
+            class="brand-seal-img"
+          >
+        </span>
 
-        <span class="site-brand-text">
-          <strong>Planifico mi Municipio</strong>
-          <small>Encuesta geoespacial participativa para el PAD 2026–2030</small>
+        <span class="brand-wordmark-wrap">
+          <img
+            src="{% static 'encuestas/img/logo_sacaba_wordmark.png' %}"
+            alt="Gobierno Autónomo Municipal de Sacaba"
+            class="site-brand-logo brand-wordmark-img"
+          >
         </span>
       </a>
 
       <nav class="site-nav" aria-label="Navegación principal">
-        <a href="{% url 'encuestas:inicio' %}">Inicio</a>
-        <a href="{% url 'encuestas:participa' %}">Participa</a>
-        <a href="{% url 'encuestas:resultados' %}">Resultados</a>
-        <a href="{% url 'encuestas:modelo_ciudad' %}">Modelo de Municipio</a>
-        <a href="{% url 'encuestas:ayuda' %}">Ayuda</a>
+        <a href="{% url 'encuestas:resultados' %}">🗺️ Resultados</a>
+        <a href="{% url 'encuestas:modelo_ciudad' %}">🏙️ Modelo de Municipio</a>
+        <a href="/cronograma/">📅 Cronograma</a>
+        <a href="/gobernanza/">📊 Gobernanza</a>
+
+        <a href="{% url 'encuestas:ayuda' %}">❓ Ayuda</a>
       </nav>
 
       <a class="site-nav-cta" href="{% url 'encuestas:participa' %}">
@@ -60,55 +207,178 @@
     {% endblock %}
   </main>
 
-  <footer class="home-footer">
-    <div class="home-footer-main">
-      <div class="home-footer-brand">
-        <img
-          src="{% static 'encuestas/img/logo_sacaba_horizontal.png' %}"
-          alt="Gobierno Autónomo Municipal de Sacaba"
-        >
+  
+<footer class="footer-institucional">
+  <div class="footer-institucional-inner">
+
+    <section class="footer-contacto">
+      <div class="footer-title-line">
+        <span></span>
+        <h2>Contacto</h2>
       </div>
 
-      <div class="home-footer-col">
-        <h3>Enlaces rápidos</h3>
-        <a href="{% url 'encuestas:inicio' %}">Inicio</a>
-        <a href="{% url 'encuestas:participa' %}">Participa</a>
-        <a href="{% url 'encuestas:resultados' %}">Resultados</a>
-      </div>
+      <div class="footer-contacto-content">
+        <h3>Gobierno Autónomo Municipal de Sacaba</h3>
 
-      <div class="home-footer-col">
-        <h3>Información</h3>
-        <p>☎ 4-4701677</p>
-        <p>✉ planificacion@sacaba.gob.bo</p>
-        <p>⌖ Av. 6 de Agosto</p>
-      </div>
+        <p>
+          <strong>📍 Dirección:</strong>
+          Gobierno Autónomo Municipal de Sacaba, Pasaje Consistorial S-002, Sacaba, Cochabamba – Bolivia.
+        </p>
 
-      <div class="home-footer-col">
-        <h3>Síguenos</h3>
-        <div class="home-socials">
-          <span>f</span>
-          <span>◎</span>
-          <span>▶</span>
-          <span>🌐</span>
-        </div>
-      </div>
+        <p>
+          <strong>🕘 Horario de atención:</strong>
+          Lunes a viernes, 08:00 a 12:00 y 14:00 a 18:00.
+        </p>
 
-      <div class="home-footer-col">
-        <h3>Aviso legal</h3>
-        <a href="{% url 'encuestas:ayuda' %}">Política de privacidad</a>
-        <a href="{% url 'encuestas:ayuda' %}">Términos de uso</a>
-        <a href="/admin/">Transparencia</a>
-      </div>
-    </div>
+        <p>
+          <strong>☎ Teléfono:</strong>
+          +(591) 4-4701677 / 4702301 / 4703059.
+        </p>
 
-    <div class="home-footer-bottom">
-      © 2026 Gobierno Autónomo Municipal de Sacaba. Todos los derechos reservados.
-    </div>
-  </footer>
+        <p>
+          <strong>✉ Correo electrónico:</strong>
+          info@sacaba.gob.bo / gobiernoelectronico@sacaba.gob.bo.
+        </p>
+      </div>
+    </section>
+
+    <section class="footer-redes">
+      <h3>Encuéntranos en Redes Sociales</h3>
+
+      <div class="footer-redes-icons">
+        <a class="red-social facebook"
+           href="https://www.facebook.com/gob.municipal.sacaba"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Facebook Gobierno Municipal de Sacaba">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.19 8.44 9.94v-7.03H7.9v-2.91h2.54V9.84c0-2.52 1.49-3.91 3.77-3.91 1.09 0 2.23.2 2.23.2v2.47h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.44 2.91h-2.34V22C18.34 21.25 22 17.08 22 12.06Z"/>
+          </svg>
+        </a>
+
+        <a class="red-social tiktok"
+           href="https://www.tiktok.com/@gamsacaba"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="TikTok GAM Sacaba">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M16.6 3c.35 2.65 1.84 4.23 4.4 4.4v3.02c-1.48.14-2.78-.34-4.31-1.26v5.65c0 7.18-7.83 9.42-10.98 4.28-2.02-3.31-.78-9.12 5.71-9.35v3.18c-.48.08-.99.2-1.46.36-1.4.47-2.2 1.35-1.98 2.91.43 2.98 5.9 3.86 5.44-1.96V3h3.18Z"/>
+          </svg>
+        </a>
+
+        <a class="red-social youtube"
+           href="https://www.youtube.com/@SACABACBBABO"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="YouTube GAM Sacaba">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.14C19.5 3.56 12 3.56 12 3.56s-7.5 0-9.37.5A3.02 3.02 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3.02 3.02 0 0 0 2.13 2.14c1.87.5 9.37.5 9.37.5s7.5 0 9.37-.5a3.02 3.02 0 0 0 2.13-2.14A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8ZM9.6 15.57V8.43L15.86 12 9.6 15.57Z"/>
+          </svg>
+        </a>
+
+        <a class="red-social web"
+           href="https://www.sacaba.gob.bo/"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Página web GAM Sacaba">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.93 6h-3.02a15.32 15.32 0 0 0-1.38-3.12A8.06 8.06 0 0 1 18.93 8ZM12 4.04A13.9 13.9 0 0 1 13.87 8h-3.74A13.9 13.9 0 0 1 12 4.04ZM4.26 14a8.17 8.17 0 0 1 0-4h3.41A16.8 16.8 0 0 0 7.55 12c0 .69.04 1.36.12 2H4.26Zm.81 2h3.02c.34 1.15.8 2.22 1.38 3.12A8.06 8.06 0 0 1 5.07 16Zm3.02-8H5.07a8.06 8.06 0 0 1 4.4-3.12A15.32 15.32 0 0 0 8.09 8ZM12 19.96A13.9 13.9 0 0 1 10.13 16h3.74A13.9 13.9 0 0 1 12 19.96ZM14.3 14H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4Zm.23 5.12A15.32 15.32 0 0 0 15.91 16h3.02a8.06 8.06 0 0 1-4.4 3.12ZM16.33 14c.08-.64.12-1.31.12-2s-.04-1.36-.12-2h3.41a8.17 8.17 0 0 1 0 4h-3.41Z"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+  </div>
+</footer>
+
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   {% block scripts %}
   {% endblock %}
+
+
+
+
+
+
+<script id="header-dinamico-institucional-gams">
+document.addEventListener("DOMContentLoaded", function () {
+  const header = document.querySelector(".site-topbar, .topbar, .main-header, header");
+  if (!header) return;
+
+  header.classList.add("gams-modern-header");
+
+  // Detectar el escudo redondo: prioriza imágenes casi cuadradas.
+  const imgs = Array.from(header.querySelectorAll("img"));
+  let seal = null;
+
+  for (const img of imgs) {
+    const rect = img.getBoundingClientRect();
+    const w = rect.width || img.naturalWidth || 0;
+    const h = rect.height || img.naturalHeight || 0;
+    if (w >= 44 && h >= 44 && w / Math.max(h, 1) <= 1.25) {
+      seal = img;
+      break;
+    }
+  }
+
+  if (!seal && imgs.length) {
+    seal = imgs[0];
+  }
+
+  if (seal) {
+    seal.classList.add("gams-rotating-seal");
+    if (seal.parentElement) {
+      seal.parentElement.classList.add("gams-seal-frame");
+    }
+  }
+
+  const items = [
+    { key: "resultados", label: "Resultados", icon: "🗺️", path: "/resultados/" },
+    { key: "modelo", label: "Modelo de Municipio", icon: "🏙️", path: "/modelo" },
+    { key: "cronograma", label: "Cronograma", icon: "🗓️", path: "/cronograma/" },
+    { key: "gobernanza", label: "Gobernanza", icon: "📊", path: "/gobernanza/" },
+    { key: "ayuda", label: "Ayuda", icon: "❔", path: "/ayuda/" },
+    { key: "aporte", label: "Registrar mi aporte", icon: "✎", path: "/participa/" }
+  ];
+
+  const currentPath = window.location.pathname;
+  const links = Array.from(header.querySelectorAll("a"));
+
+  links.forEach(function (link) {
+    const href = link.getAttribute("href") || "";
+    const rawText = (link.textContent || "").trim().toLowerCase();
+
+    let item = items.find(function (it) {
+      return rawText.includes(it.label.toLowerCase()) || href.includes(it.path);
+    });
+
+    if (!item) return;
+
+    link.classList.add("gams-nav-link");
+
+    if (item.key === "aporte") {
+      link.classList.add("gams-register-btn");
+    }
+
+    if (!link.dataset.gamsEnhanced) {
+      link.innerHTML =
+        '<span class="gams-nav-ico" aria-hidden="true">' + item.icon + '</span>' +
+        '<span>' + item.label + '</span>';
+      link.dataset.gamsEnhanced = "1";
+    }
+
+    if (
+      currentPath === item.path ||
+      currentPath.startsWith(item.path) ||
+      (item.key === "modelo" && currentPath.includes("modelo"))
+    ) {
+      link.classList.add("is-active");
+    }
+  });
+});
+</script>
+
 </body>
 </html>

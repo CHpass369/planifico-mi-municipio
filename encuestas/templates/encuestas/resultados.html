@@ -6,7 +6,7 @@
 <section class="results-public-page">
   <div class="container">
     <div class="results-shell">
-      <div class="results-badge">PANEL PÚBLICO DE RESULTADOS</div>
+      <div class="results-badge"></div>
 
       <div class="results-header-row">
         <div>
@@ -109,29 +109,42 @@ document.addEventListener("DOMContentLoaded", function () {
     scrollWheelZoom: true
   }).setView([centerLat, centerLon], centerZoom);
 
-  L.control.zoom({ position: "topright" }).addTo(map);
+  L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+  if (!map.getPane("distritosResultadosPane")) {
+    map.createPane("distritosResultadosPane");
+    map.getPane("distritosResultadosPane").style.zIndex = 320;
+    map.getPane("distritosResultadosPane").style.pointerEvents = "none";
+  }
 
   const cartoLight = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    { maxZoom: 20, subdomains: "abcd", attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
+    {
+      maxZoom: 20,
+      subdomains: "abcd",
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+    }
   ).addTo(map);
 
   const esriSat = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 20, attribution: "Tiles &copy; Esri" }
+    {
+      maxZoom: 20,
+      attribution: "Tiles &copy; Esri"
+    }
   );
 
   const layerControl = L.control.layers(
-    { "Mapa claro": cartoLight, "Imagen satelital": esriSat },
+    {
+      "Mapa claro": cartoLight,
+      "Imagen satelital": esriSat
+    },
     {},
-    { position: "topright", collapsed: true }
+    {
+      position: "topright",
+      collapsed: false
+    }
   ).addTo(map);
-
-  setTimeout(function () { map.invalidateSize(); }, 300);
-
-  let geojsonData = null;
-  let alreadyFit = false;
-  let categoryLayers = {};
 
   function escapeHTML(value) {
     if (value === null || value === undefined) return "";
@@ -150,6 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function crearIconoPunto(color) {
     const safe = safeColor(color);
+
     return L.divIcon({
       className: "public-point-marker",
       html:
@@ -168,62 +182,118 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function crearIconoClusterPorTema(categoria, color) {
-    const safe = safeColor(color);
-    return function (cluster) {
-      const count = cluster.getChildCount();
-      return L.divIcon({
-        className: "theme-cluster",
-        html:
-          "<div style='" +
-            "width:48px;" +
-            "height:48px;" +
-            "border-radius:999px;" +
-            "background:" + safe + ";" +
-            "display:flex;" +
-            "align-items:center;" +
-            "justify-content:center;" +
-            "border:5px solid rgba(255,255,255,0.90);" +
-            "box-shadow:0 5px 18px rgba(0,0,0,0.30);" +
-            "font-size:15px;" +
-            "font-weight:900;" +
-            "color:#ffffff;" +
-            "text-shadow:0 1px 3px rgba(0,0,0,0.45);" +
-          "'>" + count + "</div>",
-        iconSize: [48, 48],
-        iconAnchor: [24, 24]
+  function crearIconoCluster(cluster) {
+    const markers = cluster.getAllChildMarkers();
+    const count = markers.length;
+
+    const colores = {};
+    markers.forEach(function (marker) {
+      const color = safeColor(marker.options.colorCategoria || "#16a34a");
+      colores[color] = (colores[color] || 0) + 1;
+    });
+
+    const listaColores = Object.keys(colores).sort(function (a, b) {
+      return colores[b] - colores[a];
+    });
+
+    let background = "#16a34a";
+
+    if (listaColores.length === 1) {
+      background = listaColores[0];
+    } else if (listaColores.length > 1) {
+      const total = markers.length;
+      let acumulado = 0;
+      const partes = [];
+
+      listaColores.forEach(function (color) {
+        const inicio = Math.round((acumulado / total) * 100);
+        acumulado += colores[color];
+        const fin = Math.round((acumulado / total) * 100);
+        partes.push(color + " " + inicio + "% " + fin + "%");
       });
-    };
-  }
 
-  function crearGrupoTema(categoria, color) {
-    return L.markerClusterGroup({
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      removeOutsideVisibleBounds: false,
-      disableClusteringAtZoom: 19,
-      maxClusterRadius: function (zoom) {
-        if (zoom <= 12) return 70;
-        if (zoom <= 15) return 50;
-        if (zoom <= 17) return 30;
-        return 15;
-      },
-      iconCreateFunction: crearIconoClusterPorTema(categoria, color)
+      background = "conic-gradient(" + partes.join(", ") + ")";
+    }
+
+    return L.divIcon({
+      className: "theme-cluster",
+      html:
+        "<div class='cluster-bubble' style='" +
+          "background:" + background + ";" +
+        "'>" +
+          "<strong>" + count + "</strong>" +
+        "</div>",
+      iconSize: [52, 52],
+      iconAnchor: [26, 26]
     });
   }
 
-  function limpiarCapasPorTema() {
-    Object.keys(categoryLayers).forEach(function (categoria) {
-      const layer = categoryLayers[categoria];
-      if (map.hasLayer(layer)) map.removeLayer(layer);
-      if (layerControl && layerControl.removeLayer) layerControl.removeLayer(layer);
+  /*
+    CLUSTERING CORRECTO:
+    - Un solo grupo global para todos los puntos.
+    - La agregación se da por proximidad espacial/píxeles.
+    - Al hacer zoom in, el radio baja y los puntos se separan.
+    - Al hacer zoom out, el radio sube y los puntos se agregan.
+  */
+  const resultadosClusterLayer = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    zoomToBoundsOnClick: true,
+    removeOutsideVisibleBounds: false,
+
+    maxClusterRadius: function (zoom) {
+      if (zoom <= 10) return 90;
+      if (zoom <= 12) return 70;
+      if (zoom <= 14) return 50;
+      if (zoom <= 16) return 30;
+      if (zoom <= 18) return 14;
+      return 1;
+    },
+
+    iconCreateFunction: crearIconoCluster
+  });
+
+  map.addLayer(resultadosClusterLayer);
+  layerControl.addOverlay(resultadosClusterLayer, "Aportes ciudadanos");
+
+  fetch("/static/encuestas/data/distritos_municipales.geojson")
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error("No se pudo cargar distritos_municipales.geojson");
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      const distritosMunicipalesLayer = L.geoJSON(data, {
+        pane: "distritosResultadosPane",
+        interactive: false,
+        style: function () {
+          return {
+            color: "#064e3b",
+            weight: 2,
+            opacity: 0.9,
+            fillOpacity: 0
+          };
+        }
+      }).addTo(map);
+
+      layerControl.addOverlay(distritosMunicipalesLayer, "Distritos municipales");
+    })
+    .catch(function (error) {
+      console.warn("No se pudo cargar distritos municipales:", error);
     });
-    categoryLayers = {};
-  }
+
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 300);
+
+  let geojsonData = null;
+  let alreadyFit = false;
 
   function buildPopup(properties) {
     const p = properties || {};
     let html = "";
+
     html += "<div class='popup-aporte'>";
     html += "<h3>" + escapeHTML(p.categoria || "Sin categoría") + "</h3>";
     html += "<p><strong>Tipo:</strong> " + escapeHTML(p.tipo || "Sin dato") + "</p>";
@@ -231,35 +301,21 @@ document.addEventListener("DOMContentLoaded", function () {
     html += "<p><strong>Distrito:</strong> " + escapeHTML(p.distrito || "Sin dato") + "</p>";
     html += "<p><strong>OTB/Junta vecinal:</strong> " + escapeHTML(p.otb_junta_vecinal || "Sin dato") + "</p>";
     html += "<hr>";
-    if (p.problema) html += "<p><strong>Problema:</strong><br>" + escapeHTML(p.problema) + "</p>";
-    if (p.propuesta) html += "<p><strong>Propuesta:</strong><br>" + escapeHTML(p.propuesta) + "</p>";
-    if (p.modelo_ciudad) html += "<p><strong>Modelo de municipio:</strong><br>" + escapeHTML(p.modelo_ciudad) + "</p>";
-    html += "</div>";
-    return html;
-  }
 
-  function agregarPuntoAGrupo(feature) {
-    if (!feature.geometry || !feature.geometry.coordinates) return;
-
-    const props = feature.properties || {};
-    const categoria = props.categoria || "Sin categoría";
-    const color = safeColor(props.color || "#16a34a");
-
-    if (!categoryLayers[categoria]) {
-      categoryLayers[categoria] = crearGrupoTema(categoria, color);
-      map.addLayer(categoryLayers[categoria]);
-      if (layerControl && layerControl.addOverlay) layerControl.addOverlay(categoryLayers[categoria], categoria);
+    if (p.problema) {
+      html += "<p><strong>Problema:</strong><br>" + escapeHTML(p.problema) + "</p>";
     }
 
-    const lon = feature.geometry.coordinates[0];
-    const lat = feature.geometry.coordinates[1];
-    const marker = L.marker([lat, lon], {
-      icon: crearIconoPunto(color),
-      riseOnHover: true
-    });
+    if (p.propuesta) {
+      html += "<p><strong>Propuesta:</strong><br>" + escapeHTML(p.propuesta) + "</p>";
+    }
 
-    marker.bindPopup(buildPopup(props));
-    categoryLayers[categoria].addLayer(marker);
+    if (p.modelo_ciudad) {
+      html += "<p><strong>Modelo de municipio:</strong><br>" + escapeHTML(p.modelo_ciudad) + "</p>";
+    }
+
+    html += "</div>";
+    return html;
   }
 
   function setMapStatus(message, type) {
@@ -273,6 +329,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const currentValue = themeFilter.value;
     const categories = {};
+
     data.features.forEach(function (feature) {
       const p = feature.properties || {};
       const categoria = p.categoria || "Sin categoría";
@@ -280,48 +337,73 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     themeFilter.innerHTML = "<option value=''>Todos los temas</option>";
+
     Object.keys(categories).sort().forEach(function (categoria) {
       const option = document.createElement("option");
       option.value = categoria;
       option.textContent = categoria;
       themeFilter.appendChild(option);
     });
+
     themeFilter.value = currentValue;
+  }
+
+  function agregarPunto(feature) {
+    if (!feature.geometry || !feature.geometry.coordinates) return;
+
+    const props = feature.properties || {};
+    const color = safeColor(props.color || "#16a34a");
+
+    const lon = feature.geometry.coordinates[0];
+    const lat = feature.geometry.coordinates[1];
+
+    if (Number.isNaN(lat) || Number.isNaN(lon)) return;
+
+    const marker = L.marker([lat, lon], {
+      icon: crearIconoPunto(color),
+      riseOnHover: true,
+      categoria: props.categoria || "Sin categoría",
+      colorCategoria: color
+    });
+
+    marker.bindPopup(buildPopup(props));
+    resultadosClusterLayer.addLayer(marker);
   }
 
   function renderMapData() {
     if (!geojsonData) return;
 
     const selectedCategory = themeFilter ? themeFilter.value : "";
-    const filteredData = {
-      type: "FeatureCollection",
-      features: geojsonData.features.filter(function (feature) {
-        const props = feature.properties || {};
-        if (!selectedCategory) return true;
-        return props.categoria === selectedCategory;
-      })
-    };
 
-    limpiarCapasPorTema();
+    const features = geojsonData.features.filter(function (feature) {
+      const props = feature.properties || {};
+      if (!selectedCategory) return true;
+      return props.categoria === selectedCategory;
+    });
 
-    if (!filteredData.features || filteredData.features.length === 0) {
+    resultadosClusterLayer.clearLayers();
+
+    if (!features || features.length === 0) {
       setMapStatus("El mapa cargó correctamente, pero no hay aportes para el filtro seleccionado.", "warn");
       return;
     }
 
-    filteredData.features.forEach(function (feature) {
-      agregarPuntoAGrupo(feature);
+    features.forEach(function (feature) {
+      agregarPunto(feature);
     });
 
-    setMapStatus("Se muestran " + filteredData.features.length + " aportes publicados, agrupados por tema reportado.", "ok");
+    setMapStatus("Se muestran " + features.length + " aportes publicados, agrupados por cercanía espacial.", "ok");
 
     if (!alreadyFit) {
-      const bounds = L.latLngBounds([]);
-      Object.keys(categoryLayers).forEach(function (categoria) {
-        const layerBounds = categoryLayers[categoria].getBounds();
-        if (layerBounds.isValid()) bounds.extend(layerBounds);
-      });
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+      const bounds = resultadosClusterLayer.getBounds();
+
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, {
+          padding: [40, 40],
+          maxZoom: 16
+        });
+      }
+
       alreadyFit = true;
     }
   }
@@ -329,7 +411,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function cargarMapa() {
     fetch(geojsonUrl)
       .then(function (response) {
-        if (!response.ok) throw new Error("No se pudo cargar el GeoJSON.");
+        if (!response.ok) {
+          throw new Error("No se pudo cargar el GeoJSON.");
+        }
         return response.json();
       })
       .then(function (data) {
@@ -352,6 +436,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function findTipoTotal(items, keyword) {
     if (!items) return 0;
+
     return items.reduce(function (acc, item) {
       const name = String(item.nombre || "").toLowerCase();
       if (name.includes(keyword)) return acc + item.total;
@@ -362,6 +447,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function renderTemasReportados(items, totalPublicados) {
     const container = document.getElementById("temas-reportados");
     if (!container) return;
+
     container.innerHTML = "";
 
     if (!items || items.length === 0) {
@@ -370,10 +456,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     items.slice(0, 6).forEach(function (item) {
-      const label = item.categoria__nombre || "Sin categoría";
+      const label = item.categoria__nombre || item.nombre || "Sin categoría";
       const total = item.total || 0;
       const percent = totalPublicados > 0 ? Math.round((total / totalPublicados) * 100) : 0;
-      const color = safeColor(item.categoria__color_hex || "#16a34a");
+      const color = safeColor(item.categoria__color_hex || item.color || "#16a34a");
+
       const row = document.createElement("div");
       row.className = "reported-row";
       row.innerHTML =
@@ -384,6 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "<div class='reported-track'>" +
           "<div class='reported-fill' style='width:" + percent + "%; background:" + color + ";'></div>" +
         "</div>";
+
       container.appendChild(row);
     });
   }
@@ -391,26 +479,42 @@ document.addEventListener("DOMContentLoaded", function () {
   function cargarEstadisticas() {
     fetch(statsUrl)
       .then(function (response) {
-        if (!response.ok) throw new Error("No se pudo cargar estadísticas.");
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar estadísticas.");
+        }
         return response.json();
       })
       .then(function (data) {
-        const totalPublicados = data.total_publicados || 0;
-        const problemas = findTipoTotal(data.por_tipo, "problema");
-        const propuestas = findTipoTotal(data.por_tipo, "propuesta");
-        document.getElementById("kpi-total").textContent = totalPublicados;
-        document.getElementById("kpi-problemas").textContent = problemas;
-        document.getElementById("kpi-propuestas").textContent = propuestas;
-        document.getElementById("kpi-modelo").textContent = data.modelo_total || 0;
-        renderTemasReportados(data.por_categoria, totalPublicados);
+        const total = data.total_publicados || 0;
+
+        const kpiTotal = document.getElementById("kpi-total");
+        const kpiProblemas = document.getElementById("kpi-problemas");
+        const kpiPropuestas = document.getElementById("kpi-propuestas");
+        const kpiModelo = document.getElementById("kpi-modelo");
+
+        if (kpiTotal) kpiTotal.textContent = total;
+
+        if (kpiProblemas) {
+          kpiProblemas.textContent = data.total_problemas || findTipoTotal(data.por_tipo, "problema");
+        }
+
+        if (kpiPropuestas) {
+          kpiPropuestas.textContent = data.total_propuestas || findTipoTotal(data.por_tipo, "propuesta");
+        }
+
+        if (kpiModelo) {
+          kpiModelo.textContent = data.total_modelos || total;
+        }
+
+        renderTemasReportados(data.por_categoria || [], total);
       })
-      .catch(function (error) { console.error(error); });
+      .catch(function (error) {
+        console.warn(error);
+      });
   }
 
   cargarMapa();
   cargarEstadisticas();
-  setInterval(cargarMapa, 15000);
-  setInterval(cargarEstadisticas, 15000);
 });
 </script>
 {% endblock %}

@@ -1,162 +1,317 @@
-{% extends 'encuestas/base.html' %}
+{% extends "encuestas/base.html" %}
 {% load static %}
 
-{% block title %}Inicio | Planifico mi Municipio{% endblock %}
+{% block title %}Planifico mi Municipio | Sacaba{% endblock %}
 
 {% block content %}
 
-<section class="home-hero-modern">
-  <div class="home-container home-hero-grid">
-    <div class="home-hero-copy">
-      <p class="home-eyebrow">Participación ciudadana para el PAD 2026–2030</p>
+<main class="home-gams-page">
 
-      <h1>
-        Construyamos juntos<br>
-        el futuro de <span>Sacaba</span>
-      </h1>
+  <!-- HERO PRINCIPAL -->
+  <section class="gams-hero">
+    <div class="gams-hero-bg">
+      <div class="gams-ring gams-ring-1"></div>
+      <div class="gams-ring gams-ring-2"></div>
+      <div class="gams-dot-pattern"></div>
+    </div>
 
-      <p class="home-lead">
-        Registra problemas, propuestas y prioridades territoriales en el mapa.
-        Tus aportes ayudarán a orientar la planificación municipal y la elaboración del PAD.
-      </p>
+    <div class="gams-hero-grid">
+      <div class="gams-hero-copy">
+        <span class="gams-pill">TU VOZ, TU CIUDAD, NUESTRO COMPROMISO</span>
 
-      <div class="home-hero-actions">
-        <a href="{% url 'encuestas:participa' %}" class="home-btn-primary">
-          <span>✎</span>
-          Registrar mi aporte
-        </a>
+        <h1>
+          Construyamos juntos
+          <strong>el futuro de Sacaba</strong>
+        </h1>
 
-        <a href="{% url 'encuestas:resultados' %}" class="home-btn-secondary">
-          <span>🗺</span>
-          Ver resultados en el mapa
-        </a>
-      </div>
-
-      <div class="home-privacy-note">
-        <span>🛡</span>
         <p>
-          Tus datos serán utilizados únicamente con fines de planificación municipal.<br>
-          La información será revisada técnicamente antes de su publicación.
+          Participa identificando problemas, proponiendo soluciones y aportando
+          a la construcción del Plan Autonómico de Desarrollo PAD 2026–2030.
         </p>
+
+        <div class="gams-hero-actions">
+          <a href="/participa/" class="gams-btn gams-btn-primary">
+            ✎ Registrar mi aporte
+          </a>
+          <a href="/resultados/" class="gams-btn gams-btn-outline">
+            ▣ Ver resultados
+          </a>
+        </div>
+
+        <div class="gams-security-note">
+          <span>🔒</span>
+          <small>Tu información será utilizada solo con fines de planificación municipal.</small>
+        </div>
       </div>
-    </div>
 
-    <div class="home-hero-visual">
-      <img
-        src="{% static 'encuestas/img/home_hero_sacaba.png' %}"
-        alt="Mapa ilustrativo de Sacaba con aportes ciudadanos georreferenciados"
-        class="home-hero-map"
-      >
-    </div>
-
-    <aside class="home-stats-stack" aria-label="Indicadores de participación">
-      <article class="home-stat-card green">
-        <div class="home-stat-icon">👥</div>
-        <div>
-          <strong>{{ total|default:0 }}</strong>
-          <span>Aportes registrados</span>
-          <small>Total de participaciones recibidas</small>
+      <div class="gams-map-visual gams-hero-image-visual" aria-label="Participación geoespacial ciudadana en Sacaba">
+        <div class="gams-hero-image-card">
+          <img
+            src="{% static 'encuestas/img/hero_sacaba_participacion.webp' %}"
+            alt="Participación ciudadana geoespacial en el municipio de Sacaba"
+            class="gams-hero-main-image"
+          >
         </div>
-      </article>
 
-      <article class="home-stat-card blue">
-        <div class="home-stat-icon">✓</div>
-        <div>
-          <strong>{{ publicados|default:0 }}</strong>
-          <span>Aportes publicados</span>
-          <small>Disponibles para consulta ciudadana</small>
+        <div class="gams-floating-card card-one">
+          <b>Participación ciudadana</b>
+          <span>Aportes georreferenciados</span>
         </div>
-      </article>
 
-      <article class="home-stat-card amber">
-        <div class="home-stat-icon">◷</div>
-        <div>
-          <strong>{{ revision|default:0 }}</strong>
-          <span>En revisión técnica</span>
-          <small>Pendientes de validación municipal</small>
+        <div class="gams-floating-card card-two">
+          <b>PAD 2026–2030</b>
+          <span>Planificación con evidencia</span>
         </div>
-      </article>
+      </div>
 
-      <article class="home-stat-card purple">
-        <div class="home-stat-icon">▥</div>
-        <div>
-          <strong>{{ distritos_participacion|default:0 }}</strong>
-          <span>Distritos con participación</span>
-          <small>Aportes recibidos en el municipio</small>
-        </div>
-      </article>
-    </aside>
-  </div>
-</section>
+      <aside class="gams-kpi-stack">
+        <article class="gams-kpi-card">
+          <div class="gams-kpi-icon">👥</div>
+          <div>
+            <span>Aportes registrados</span>
+            <strong id="home-kpi-total">0</strong>
+            <small>en la plataforma</small>
+          </div>
+        </article>
 
-<section class="home-container home-steps-grid">
-  <article class="home-step-card">
-    <div class="home-step-icon green">📍</div>
-    <div>
-      <h2>1. Identifica un problema</h2>
-      <p>
-        Puedes registrar problemas de movilidad, seguridad, medio ambiente,
-        servicios básicos, equipamiento urbano, infraestructura u otros temas.
-      </p>
+        <article class="gams-kpi-card">
+          <div class="gams-kpi-icon">✅</div>
+          <div>
+            <span>Aportes publicados</span>
+            <strong id="home-kpi-publicados">0</strong>
+            <small>visibles para la ciudadanía</small>
+          </div>
+        </article>
+
+        <article class="gams-kpi-card gams-kpi-gold">
+          <div class="gams-kpi-icon">⏱️</div>
+          <div>
+            <span>En revisión técnica</span>
+            <strong id="home-kpi-revision">0</strong>
+            <small>en evaluación</small>
+          </div>
+        </article>
+
+        <article class="gams-kpi-card">
+          <div class="gams-kpi-icon">🗺️</div>
+          <div>
+            <span>Distritos con participación</span>
+            <strong id="home-kpi-distritos">—</strong>
+            <small>cobertura territorial</small>
+          </div>
+        </article>
+      </aside>
     </div>
-  </article>
+  </section>
 
-  <article class="home-step-card">
-    <div class="home-step-icon amber">💡</div>
-    <div>
-      <h2>2. Propón una mejora</h2>
-      <p>
-        Además del problema, puedes plantear soluciones o proyectos que consideres
-        necesarios para mejorar tu barrio, distrito o municipio.
-      </p>
-    </div>
-  </article>
-
-  <article class="home-step-card">
-    <div class="home-step-icon teal">🗺</div>
-    <div>
-      <h2>3. Ubica tu aporte</h2>
-      <p>
-        Marca en el mapa el punto aproximado donde se encuentra el problema
-        o donde debería implementarse la propuesta.
-      </p>
-    </div>
-  </article>
-
-  <article class="home-step-card">
-    <div class="home-step-icon lime">🏙</div>
-    <div>
-      <h2>4. Imagina tu municipio</h2>
-      <p>
-        Describe cómo deseas que sea Sacaba en los próximos años: verde, seguro,
-        productivo, inclusivo, ordenado, moderno y sostenible.
-      </p>
-    </div>
-  </article>
-</section>
-
-<section class="home-container home-participation-band">
-  <div class="home-participation-image">
-    <img
-      src="{% static 'encuestas/img/home_participacion.svg' %}"
-      alt="Ciudadanas y ciudadanos participando en la planificación municipal"
-    >
-  </div>
-
-  <div class="home-participation-copy">
-    <h2>Tu participación es importante</h2>
-    <p>
-      Cada aporte cuenta para construir el municipio que todas y todos queremos.
-    </p>
-  </div>
-
-  <div class="home-participation-action">
-    <a href="{% url 'encuestas:resultados' %}" class="home-btn-light">
-      <span>🗺</span>
-      Ver mapa de resultados
+  <!-- MÓDULOS -->
+  <section class="gams-module-grid">
+    <a href="/participa/" class="gams-module-card">
+      <span class="module-icon">👥</span>
+      <h2>Participa</h2>
+      <p>Registra problemas, propuestas o necesidades en el mapa de tu distrito.</p>
+      <b>Quiero participar →</b>
     </a>
-    <small>Explora los aportes ciudadanos en el mapa</small>
-  </div>
-</section>
+
+    <a href="/resultados/" class="gams-module-card">
+      <span class="module-icon">📊</span>
+      <h2>Resultados</h2>
+      <p>Explora aportes ciudadanos en mapas, gráficos y tableros interactivos.</p>
+      <b>Ver resultados →</b>
+    </a>
+
+    <a href="/cronograma/" class="gams-module-card">
+      <span class="module-icon">🗓️</span>
+      <h2>Cronograma</h2>
+      <p>Conoce las etapas del proceso de planificación y fechas de socialización.</p>
+      <b>Ver cronograma →</b>
+    </a>
+
+    <a href="/gobernanza/" class="gams-module-card">
+      <span class="module-icon">🏛️</span>
+      <h2>Gobernanza</h2>
+      <p>Evalúa transparencia, participación y coordinación institucional.</p>
+      <b>Conocer más →</b>
+    </a>
+
+    <a href="/ayuda/" class="gams-module-card">
+      <span class="module-icon">❔</span>
+      <h2>Ayuda</h2>
+      <p>Encuentra guías, preguntas frecuentes y canales de atención.</p>
+      <b>Ir a ayuda →</b>
+    </a>
+  </section>
+
+  <!-- RESULTADOS + CRONOGRAMA -->
+  <section class="gams-dashboard-preview">
+
+    <article class="gams-preview-card gams-results-preview">
+      <div class="preview-title">
+        <div>
+          <span>MAPA PÚBLICO</span>
+          <h2>Resultados ciudadanos</h2>
+        </div>
+        <a href="/resultados/">Ver todos →</a>
+      </div>
+
+      <div class="mini-map">
+        <div class="mini-map-grid"></div>
+        <span class="mini-pin green"></span>
+        <span class="mini-pin blue"></span>
+        <span class="mini-pin gold"></span>
+        <span class="mini-pin red"></span>
+        <span class="mini-cluster">3</span>
+      </div>
+
+      <div class="mini-summary-grid">
+        <div>
+          <b id="home-mini-total">0</b>
+          <span>Total aportes</span>
+        </div>
+        <div>
+          <b id="home-mini-categorias">—</b>
+          <span>Temas reportados</span>
+        </div>
+        <div>
+          <b>PAD</b>
+          <span>Insumo participativo</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gams-preview-card gams-timeline-preview">
+      <div class="preview-title">
+        <div>
+          <span>PROCESO PAD</span>
+          <h2>Cronograma y socialización</h2>
+        </div>
+        <a href="/cronograma/">Ver calendario →</a>
+      </div>
+
+      <div class="timeline-flow">
+        <div class="timeline-step done">
+          <i>✓</i>
+          <b>Preparación</b>
+          <span>Inicio institucional</span>
+        </div>
+        <div class="timeline-step active">
+          <i>●</i>
+          <b>Levantamiento</b>
+          <span>Aportes ciudadanos</span>
+        </div>
+        <div class="timeline-step">
+          <i>○</i>
+          <b>Análisis</b>
+          <span>Sistematización</span>
+        </div>
+        <div class="timeline-step">
+          <i>○</i>
+          <b>Socialización</b>
+          <span>Devolución pública</span>
+        </div>
+        <div class="timeline-step">
+          <i>○</i>
+          <b>Aprobación</b>
+          <span>PAD final</span>
+        </div>
+      </div>
+
+      <div class="timeline-callout">
+        <span>🤝</span>
+        <p>Participa en reuniones distritales y talleres ciudadanos. Tu aporte es clave para una mejor planificación.</p>
+        <a href="/cronograma/">Conoce las fechas</a>
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const setText = function (id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  fetch("/api/estadisticas.json")
+    .then(function (response) {
+      if (!response.ok) throw new Error("No se pudieron cargar estadísticas.");
+      return response.json();
+    })
+    .then(function (data) {
+      const total = data.total_publicados || data.total || 0;
+      const publicados = data.total_publicados || total || 0;
+      const revision = data.total_revision || data.en_revision || 0;
+      const categorias = Array.isArray(data.por_categoria) ? data.por_categoria.length : "—";
+
+      setText("home-kpi-total", total);
+      setText("home-kpi-publicados", publicados);
+      setText("home-kpi-revision", revision);
+      // Sacaba tiene 11 distritos municipales.
+      // Se calcula cuántos distritos tienen participación publicada.
+      const TOTAL_DISTRITOS_SACABA = 11;
+
+      fetch("/api/registros.geojson")
+        .then(function (response) {
+          if (!response.ok) throw new Error("No se pudo cargar GeoJSON.");
+          return response.json();
+        })
+        .then(function (geojson) {
+          const distritos = new Set();
+
+          (geojson.features || []).forEach(function (feature) {
+            const props = feature.properties || {};
+            let distrito = String(props.distrito || "").trim().toLowerCase();
+
+            if (!distrito) return;
+
+            // Normalización básica
+            distrito = distrito
+              .replace("distrito", "")
+              .replace("dist.", "")
+              .replace("dist", "")
+              .replace("-", " ")
+              .replace("_", " ")
+              .trim();
+
+            if (distrito === "d1") distrito = "1";
+            if (distrito === "d2") distrito = "2";
+            if (distrito === "d3") distrito = "3";
+            if (distrito === "d4") distrito = "4";
+            if (distrito === "d5") distrito = "5";
+            if (distrito === "d6") distrito = "6";
+            if (distrito === "d7") distrito = "7";
+            if (distrito.includes("lava")) distrito = "lava lava";
+            if (distrito.includes("ucuchi")) distrito = "ucuchi";
+            if (distrito.includes("aguirre")) distrito = "aguirre";
+            if (distrito.includes("palca")) distrito = "palca";
+
+            const validos = new Set([
+              "1", "2", "3", "4", "5", "6", "7",
+              "lava lava", "ucuchi", "aguirre", "palca"
+            ]);
+
+            if (validos.has(distrito)) {
+              distritos.add(distrito);
+            }
+          });
+
+          setText("home-kpi-distritos", distritos.size + " / " + TOTAL_DISTRITOS_SACABA);
+        })
+        .catch(function () {
+          setText("home-kpi-distritos", "0 / " + TOTAL_DISTRITOS_SACABA);
+        });
+      setText("home-mini-total", total);
+      setText("home-mini-categorias", categorias);
+    })
+    .catch(function () {
+      setText("home-kpi-total", "—");
+      setText("home-kpi-publicados", "—");
+      setText("home-kpi-revision", "—");
+      setText("home-kpi-distritos", "—");
+    });
+});
+</script>
 
 {% endblock %}
